@@ -46,16 +46,30 @@ export class UsersService {
     return user;
   }
 
+  async updateUser(userInfo: User): Promise<User> {
+    return this.usersRepository.save(userInfo)
+  }
+
   getPasswordHash(password: User['password']):string {
-    return createHmac('sha256', this.configService.get<string>("PASSWORD_SECRET"))
+    return createHmac('sha256', this.configService.get("PASSWORD_SECRET"))
     .update(password)
     .digest('hex');
   }
 
   async getUserByEmail(email: User['email']): Promise<User> {
-    return await this.usersRepository.findOne({
+    if(!email) {
+      throw new BadRequestException(`User's "email" is not definded`)
+    }
+
+    const user =  await this.usersRepository.findOne({
       where: { email },
     });
+
+    if(!user) {
+      throw new NotFoundException(`No User found for the email ${email}`)
+    }
+
+    return user;
   }
 
   async getUsers(): Promise<Array<User>> {

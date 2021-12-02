@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { nanoid } from "nanoid";
 import { CacheService } from "../cache/cache.service";
@@ -30,8 +30,7 @@ export class AuthService {
             moment().toISOString(),
         ];
 
-        const textToEncrypt = `${keyFactors.join('|')}`;
-        const text = Buffer.from(textToEncrypt).toString('base64');
+        const text = Buffer.from(`${keyFactors.join('|')}`).toString('base64');
 
         await this.cacheService.set(`${tokenInfo.user_id}_${tokenInfo.browser_name}_${tokenInfo.device_type}`, text);
         return text
@@ -54,8 +53,7 @@ export class AuthService {
             moment().toISOString(),
         ];
 
-        const textToEncrypt = `${keyFactors.join('|')}`;
-        const text = Buffer.from(textToEncrypt).toString('base64');
+        const text = Buffer.from(`${keyFactors.join('|')}`).toString('base64');
 
         await this.cacheService.set(`reset_${userInfo.id}`, text);
         return text
@@ -69,11 +67,32 @@ export class AuthService {
             moment().toISOString(),
         ];
 
-        const textToEncrypt = `${keyFactors.join('|')}`;
-        const text = Buffer.from(textToEncrypt).toString('base64');
+        const text = Buffer.from(`${keyFactors.join('|')}`).toString('base64');
 
         await this.cacheService.set(`active_${userInfo.id}`, text);
         return text
+    }
+
+    async validateActivationToken(userInfo: User, code: string): Promise<boolean> {
+        const [, appId, userId, time] = Buffer.from(code, 'base64').toString('ascii').split("|")
+
+        if(await this.cacheService.get(`active_${userInfo.id}`) !== code) {
+            throw new BadRequestException("Invalid Activation Code for User")
+        }
+        
+        if(appId !== this.configService.get("APP_ID")) {
+            throw new BadRequestException("Invalid Activation code for App")
+        }
+
+        if(userId !== userInfo.id) {
+            throw new BadRequestException("Invalid Activation for matching User")
+        }
+
+        if(!moment(time).isBetween(moment().subtract(1, 'day'), moment())) {
+            throw new BadRequestException("Activation token expired its duration")
+        }
+
+        return true;
     }
 
     async getDataFromResetCode(code: string): Promise<Array<string>> {
@@ -91,15 +110,15 @@ export class AuthService {
         return [codeId, appId, userId, userEmail, codeDate]
     }
 
-    generateActivationMarkup(user: User, code:string) : string {
-        
+    generateActivationMarkup(user: User, code: string): string {
+
         const filePath = join(process.cwd(), 'template', "activation.hbs");
         const markup = readFileSync(filePath, { encoding: "utf-8" })
-    
+
         Handlebars.registerHelper("link_code", (t) => {
-          const url = Handlebars.escapeExpression(`http://localhost:3000/auth/activate?code=${code}&id=${user.id}`)
-          const text = Handlebars.escapeExpression(t)
-          return new Handlebars.SafeString("<a href='" + url + "'>" + text + "</a>");
+            const url = Handlebars.escapeExpression(`http://localhost:3000/auth/activate?code=${code}&id=${user.id}`)
+            const text = Handlebars.escapeExpression(t)
+            return new Handlebars.SafeString("<a href='" + url + "'>" + text + "</a>");
         });
 
         const template = Handlebars.compile(markup);
@@ -119,7 +138,7 @@ export class AuthService {
         });
 
         const code = await this.generateActivationCode(user);
-        
+
         // send mail with defined transport object
         return await transporter.sendMail({
             from: '"Fehm" <no-reply@fehm.live>', // sender address

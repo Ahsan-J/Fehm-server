@@ -124,20 +124,19 @@ export class AuthController {
   @UsePipes(ValidationPipe)
   async forgotPassword(@Body() body: ForgotPasswordBody): Promise<string> {
     const userInfo = await this.userService.getUserByEmail(body.email);
-
-    if (!userInfo) throw new NotFoundException(`User with email ${body.email} not found`);
-
     const resetCode = await this.authService.generateResetCode(userInfo);
+    
     // Send this code to user's email address for secure Authentication
-
     return resetCode || "The code has been sent to your email address. Kindly verify the code for further processing"
   }
 
   @Get('activate')
   @UsePipes(ValidationPipe)
-  activateUser(@Query() query: ActivateUserBody) {
-    // Logic here to activate against code
-    console.log(query.id, query.code)
+  async activateUser(@Query() query: ActivateUserBody): Promise<User> {
+    const user = await this.userService.getUser(query.id);
+    await this.authService.validateActivationToken(user, query.code)
+    user.status = 2;
+    return this.userService.updateUser(user)
   }
 
   @Get('activation-template')
