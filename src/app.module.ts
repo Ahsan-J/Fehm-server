@@ -5,6 +5,7 @@ import AudioModule from './modules/audio/audio.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { TypeOrmModule, TypeOrmModuleAsyncOptions } from "@nestjs/typeorm";
+import { CommonModule } from './helper-modules/common/common.module';
 
 const databaseConfiguration: TypeOrmModuleAsyncOptions = {
   imports: [ConfigModule],
@@ -25,6 +26,7 @@ const databaseConfiguration: TypeOrmModuleAsyncOptions = {
   imports: [
     ConfigModule.forRoot(),
     TypeOrmModule.forRootAsync(databaseConfiguration),
+    CommonModule,
     AuthModule,
     UserModule,
     ApiModule,
