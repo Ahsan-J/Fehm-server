@@ -5,22 +5,22 @@ import { Cache, CachingConfig } from "cache-manager";
 export class CacheService {
     constructor(
         @Inject(CACHE_MANAGER)
-        private cacheService: Cache
+        private cacheManager: Cache
     ) {}
 
     get(key: string) {
-        return this.cacheService.get(key)
+        return this.cacheManager.get(key)
     }
 
     set(key:string, value: string, option? : CachingConfig) {
-        return this.cacheService.set(key, value, option)
+        return this.cacheManager.set(key, value, Object.assign({ttl: 86400}, option))
     }
 
     del(key: string) {
-        return this.cacheService.del(key)
+        return this.cacheManager.del(key)
     }
 
     reset() {
-        return this.cacheService.reset();
+        return this.cacheManager.reset();
     }
 }
