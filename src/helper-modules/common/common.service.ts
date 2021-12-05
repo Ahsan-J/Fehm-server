@@ -9,11 +9,11 @@ export class CommonService {
         return value | status
     }
 
-    checkStatus(value: number, status: number): boolean {
+    checkValue(value: number, status: number): boolean {
         return (value & status) == status;
     }
 
-    removeStatus(value: number, status: number): number {
+    removeValue(value: number, status: number): number {
         return value & ~status
     }
 }

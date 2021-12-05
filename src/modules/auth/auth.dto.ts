@@ -46,30 +46,6 @@ export class RegisterBody {
     contact_number: User['contact_number'];
 }
 
-export class TokenParams {
-    @IsOptional()
-    id?: string;
-
-    @IsNotEmpty()
-    user_id: User['id'];
-
-    @IsNotEmpty()
-    @IsString()
-    device_type: string;
-
-    @IsNotEmpty()
-    @IsString()
-    browser_name: string;
-
-    @IsNotEmpty()
-    @IsString()
-    email: User['email'];
-
-    @IsNotEmpty()
-    @IsString()
-    api_key: string;
-}
-
 export class ResetPasswordBody {
     @IsNotEmpty()
     @IsString()

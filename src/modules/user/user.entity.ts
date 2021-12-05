@@ -1,6 +1,7 @@
-import { BaseModel } from "../../helper/common.model";
+import { BaseModel } from "../../helper/model";
 import { Column, Entity, PrimaryColumn } from "typeorm";
 import { Exclude } from "class-transformer";
+import { MemberShip, UserRole } from "./user.enum";
 
 @Entity()
 export class User extends BaseModel {
@@ -24,9 +25,9 @@ export class User extends BaseModel {
     @Exclude({ toPlainOnly: true })
     password: string;
 
-    @Column({default: 1})
-    type: number;
+    @Column({default: UserRole.User})
+    role: UserRole;
 
-    @Column({default: 0})
-    membership_status: number;
+    @Column({default: MemberShip.InActive})
+    membership_status: MemberShip;
 }

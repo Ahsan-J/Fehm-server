@@ -1,8 +1,6 @@
-import { randomBytes, createCipheriv, scryptSync, createDecipheriv } from 'crypto';
+import { createCipheriv, scryptSync, createDecipheriv } from 'crypto';
 
-// const iv = randomBytes(16)
-
-export const encryptText = (value: string, keyString: string = process.env.PASSWORD_SECRET): string => {
+export const encryptText = (value: string, keyString: string = process.env.APP_ID): string => {
     const iv = Buffer.alloc(16, 0);
     const key = scryptSync(keyString, 'salt', 24) as Buffer;
     const cipher = createCipheriv('aes-192-cbc', key, iv);
@@ -10,7 +8,7 @@ export const encryptText = (value: string, keyString: string = process.env.PASSW
     return encryptedText.toString('hex')
 }
 
-export const decryptText = (value: string, keyString:string = process.env.PASSWORD_SECRET): string => {
+export const decryptText = (value: string, keyString:string = process.env.APP_ID): string => {
     const iv = Buffer.alloc(16, 0);
     const key = scryptSync(keyString, 'salt', 24) as Buffer;
     const decipher = createDecipheriv('aes-192-cbc',key,iv);
