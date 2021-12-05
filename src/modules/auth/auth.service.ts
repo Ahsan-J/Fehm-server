@@ -1,14 +1,15 @@
-import { BadRequestException, ForbiddenException, Injectable } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { nanoid } from "nanoid";
-import { CacheService } from "../cache/cache.service";
+import { CacheService } from "../../helper-modules/cache/cache.service";
 import { User } from "../user/user.entity";
-import { TokenParams } from "./auth.dto";
-import nodemailer from 'nodemailer';
+import { HeaderParams } from "./auth.dto";
 import moment from 'moment';
 import Handlebars from "handlebars";
 import { join } from 'path';
 import { readFileSync } from "fs";
+import { UAParser } from 'ua-parser-js'
+import { Request } from "express";
 
 @Injectable()
 export class AuthService {
@@ -18,47 +19,131 @@ export class AuthService {
         private cacheService: CacheService,
     ) { }
 
-    async generateToken(tokenInfo: TokenParams) {
+    async generateToken(user: User, headers: HeaderParams) {
+
+        if(!headers['x-api-key']) {
+            throw new ForbiddenException("You Application is not authorized to use this API")
+        }
+        
+        const parser = new UAParser();
+        parser.setUA(headers['user-agent']);
+
         const keyFactors = [
-            tokenInfo.id || nanoid(), // Token Id
+            nanoid(), // Token Id
             this.configService.get("APP_ID"),
-            tokenInfo.user_id,
-            tokenInfo.email,
-            tokenInfo.api_key,
-            tokenInfo.device_type || "",
-            tokenInfo.browser_name || "",
+            user.id,
+            headers['x-api-key'],
+            parser.getDevice().type || "",
+            parser.getBrowser().name || "",
             moment().toISOString(),
         ];
 
         const text = Buffer.from(`${keyFactors.join('|')}`).toString('base64');
-
-        await this.cacheService.set(`${tokenInfo.user_id}_${tokenInfo.browser_name}_${tokenInfo.device_type}`, text);
+        
+        await this.cacheService.set(`${user.id}_${parser.getBrowser().name || ""}_${parser.getDevice().type || ""}`, text);
         return text
     }
 
-    validateUserToken(token: string): boolean {
-        console.log("Validating Token", token);
-        return false;
+    async validateAccessToken (headers: Request['headers']): Promise<boolean> {
+        if(!headers['x-api-key']) {
+            throw new ForbiddenException("You Application is not authorized to use this API")
+        }
+        
+        if(!headers.authorization) {
+            throw new UnauthorizedException("Authorization token is missing");
+        }
+        
+        const code = headers.authorization.replace('Bearer ','');
+        
+        const parser = new UAParser();
+        parser.setUA(headers['user-agent']);
+        
+        const [,
+            appId,
+            userId,
+            apiKey,
+            deviceType,
+            browser,
+            time,
+        ] = Buffer.from(code, 'base64').toString('ascii').split("|");
+        
+        if (await this.cacheService.get(`${userId}_${browser}_${deviceType}`) !== code) {
+            throw new UnauthorizedException("Invalid Authorization token")
+        }
+        
+        if(appId !== this.configService.get("APP_ID")) {
+            throw new UnauthorizedException("App id is invalid")
+        }
+        
+        if(apiKey !== headers['x-api-key']) {
+            throw new ForbiddenException("Api key is invalid")
+        }
+        
+        if(!moment(time).isBetween(moment().subtract(1, 'day'), moment())) {
+            throw new UnauthorizedException("Reset token expired its duration")
+        }
+
+        return true;
     }
 
-    refreshToken() {
-        console.log("Refreshing the token")
-    }
+    // Reset Process ************************************************************
 
     async generateResetCode(userInfo: User): Promise<string> {
         const keyFactors = [
             nanoid(), // Token Id
             this.configService.get("APP_ID"),
-            userInfo.id,
+            userInfo.email,
             moment().toISOString(),
         ];
 
         const text = Buffer.from(`${keyFactors.join('|')}`).toString('base64');
 
-        await this.cacheService.set(`reset_${userInfo.id}`, text);
+        await this.cacheService.set(`reset_${userInfo.email}`, text);
         return text
     }
 
+    async validateResetCode(userInfo: User, code: string): Promise<boolean> {
+        if(!code) {
+            throw new BadRequestException("Reset Code is missing")
+        }
+
+        if(await this.cacheService.get(`reset_${userInfo.email}`) !== code) {
+            throw new BadRequestException("Invalid Reset Password Code for User")
+        }
+
+        const [, appId, userId, time] = Buffer.from(code, 'base64').toString('ascii').split("|");
+
+        if(appId !== this.configService.get("APP_ID")) {
+            throw new BadRequestException("Invalid Reset code for App")
+        }
+
+        if(userId !== userInfo.id) {
+            throw new BadRequestException("Invalid Reset for matching User")
+        }
+
+        if(!moment(time).isBetween(moment().subtract(1, 'day'), moment())) {
+            throw new BadRequestException("Reset token expired its duration")
+        }
+
+        return true;
+    }
+
+    async generateResetMarkup(user: User, code?: string): Promise<string> {
+        code = code || await this.generateResetCode(user);
+        const filePath = join(process.cwd(), 'template', "reset-password.hbs");
+        const markup = readFileSync(filePath, { encoding: "utf-8" })
+
+        Handlebars.registerHelper("link_code", (t) => {
+            const url = Handlebars.escapeExpression(`http://localhost:3000/auth/reset-password?code=${code}&email=${user.email}`)
+            const text = Handlebars.escapeExpression(t)
+            return new Handlebars.SafeString("<a href='" + url + "'>" + text + "</a>");
+        });
+
+        const template = Handlebars.compile(markup);
+        return template({ user })
+    }
+
+    // Activation Process *********************************************************
     async generateActivationCode(userInfo: User): Promise<string> {
         const keyFactors = [
             nanoid(), // Token Id
@@ -73,12 +158,16 @@ export class AuthService {
         return text
     }
 
-    async validateActivationToken(userInfo: User, code: string): Promise<boolean> {
-        const [, appId, userId, time] = Buffer.from(code, 'base64').toString('ascii').split("|")
-
+    async validateActivationCode(userInfo: User, code: string): Promise<boolean> {
+        if(!code) {
+            throw new BadRequestException("Reset Code is missing")
+        }
+        
         if(await this.cacheService.get(`active_${userInfo.id}`) !== code) {
             throw new BadRequestException("Invalid Activation Code for User")
         }
+
+        const [, appId, userId, time] = Buffer.from(code, 'base64').toString('ascii').split("|")
         
         if(appId !== this.configService.get("APP_ID")) {
             throw new BadRequestException("Invalid Activation code for App")
@@ -95,22 +184,9 @@ export class AuthService {
         return true;
     }
 
-    async getDataFromResetCode(code: string): Promise<Array<string>> {
-        const [
-            codeId, // Token Id
-            appId,
-            userId,
-            userEmail,
-            codeDate,
-        ] = Buffer.from(code, 'base64').toString('ascii').split("|");
+    async generateActivationMarkup(user: User, code?: string): Promise<string> {
 
-        const storedCode = await this.cacheService.get(`reset_${userId}`)
-        if (!storedCode) throw new ForbiddenException("The code is invalid");
-
-        return [codeId, appId, userId, userEmail, codeDate]
-    }
-
-    generateActivationMarkup(user: User, code: string): string {
+        code = code || await this.generateActivationCode(user)
 
         const filePath = join(process.cwd(), 'template', "activation.hbs");
         const markup = readFileSync(filePath, { encoding: "utf-8" })
@@ -123,28 +199,5 @@ export class AuthService {
 
         const template = Handlebars.compile(markup);
         return template({ user })
-    }
-
-    async sendActivationCode(user: User) {
-        const transporter = nodemailer.createTransport({
-            host: this.configService.get("SMTP_HOST"),
-            port: 587,
-            secure: false,
-            auth: {
-                user: this.configService.get("SMTP_USER"), // generated ethereal user
-                pass: this.configService.get("SMTP_PASSWORD"), // generated ethereal password
-            },
-
-        });
-
-        const code = await this.generateActivationCode(user);
-
-        // send mail with defined transport object
-        return await transporter.sendMail({
-            from: '"Fehm" <no-reply@fehm.live>', // sender address
-            to: user.email, // list of receivers
-            subject: "Activate your account", // Subject line
-            html: this.generateActivationMarkup(user, code), // pass user
-        });
     }
 }

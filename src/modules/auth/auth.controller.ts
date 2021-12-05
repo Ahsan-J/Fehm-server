@@ -1,10 +1,12 @@
-import { Controller, Post, Body, UsePipes, ValidationPipe, ForbiddenException, BadRequestException, ClassSerializerInterceptor, UseInterceptors, Headers, NotFoundException, BadGatewayException, Get, Query } from '@nestjs/common';
+import { Controller, Post, Body, UsePipes, ValidationPipe, ForbiddenException, BadRequestException, ClassSerializerInterceptor, UseInterceptors, Headers, Get, Query, Inject } from '@nestjs/common';
 import { User } from '../user/user.entity';
 import { UsersService } from '../user/user.service';
-import { ForgotPasswordBody, HeaderParams, LoginBody, RegisterBody, ResetPasswordBody, TokenParams, ActivateUserBody } from './auth.dto';
+import { ForgotPasswordBody, HeaderParams, LoginBody, RegisterBody, ResetPasswordBody, ActivateUserBody } from './auth.dto';
 import { AuthService } from './auth.service';
-import { UAParser } from 'ua-parser-js'
 import { ApiTags } from '@nestjs/swagger';
+import { MailService } from '../../helper-modules/mail/mail.service';
+import { UserStatus } from '../user/user.enum';
+import { CommonService } from 'src/helper-modules/common/common.service';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -14,6 +16,9 @@ export class AuthController {
   constructor(
     private authService: AuthService,
     private userService: UsersService,
+    private mailService: MailService,
+    @Inject(CommonService)
+    private commonService: CommonService
   ) { }
 
   @Post('login')
@@ -22,8 +27,12 @@ export class AuthController {
 
     const userInfo: User = await this.userService.getUserByEmail(body.email);
 
-    if (!userInfo) {
-      throw new BadRequestException("User Not found")
+    if (this.commonService.checkValue(userInfo.status, UserStatus.InActive)) {
+      throw new ForbiddenException("Your account is not active at the moment. Check your email and follow steps to activate")
+    }
+
+    if (this.commonService.checkValue(userInfo.status, UserStatus.Blocked)) {
+      throw new ForbiddenException("Your Account has been temporarily blocked");
     }
 
     const loginPassword: string = this.userService.getPasswordHash(body.password);
@@ -32,22 +41,14 @@ export class AuthController {
       throw new BadRequestException("Password mismatch")
     }
 
-    const parser = new UAParser();
-    parser.setUA(headers['user-agent'])
-
-    const tokenInfo: TokenParams = {
-      device_type: parser.getDevice().type,
-      browser_name: parser.getBrowser().name,
-      email: userInfo.email,
-      user_id: userInfo.id,
-      api_key: headers['x-api-key'],
-    }
 
     delete userInfo.password;
 
+    const access_token = await this.authService.generateToken(userInfo, headers);
+
     return {
       ...userInfo,
-      access_token: await this.authService.generateToken(tokenInfo),
+      access_token,
       token_expiry: 86400
     }
   }
@@ -59,84 +60,75 @@ export class AuthController {
     if (body.password !== body.confirm_password) {
       throw new ForbiddenException("Password mismatch")
     }
+    let userInfo: User
+    try {
+      userInfo = await this.userService.getUserByEmail(body.email);
+    } catch(e) {
+      // console.log(e)
+    }
 
-    let userInfo: User = await this.userService.getUserByEmail(body.email);
-
-    if (userInfo) {
+    if(userInfo) {
       throw new ForbiddenException("User Already registered with email")
     }
 
-    const parser = new UAParser();
-    parser.setUA(headers['user-agent'])
+    if(body.confirm_password !== body.password) {
+      throw new BadRequestException("User Password mismatch")
+    }
 
     userInfo = await this.userService.createUser(body);
 
-    const tokenInfo: TokenParams = {
-      device_type: parser.getDevice().type,
-      browser_name: parser.getBrowser().name,
-      email: userInfo.email,
-      user_id: userInfo.id,
-      api_key: headers['x-api-key'],
-    }
-
     delete userInfo.password;
 
-    this.authService.sendActivationCode(userInfo)
+    const markup = await this.authService.generateActivationMarkup(userInfo)
+    
+    await this.mailService.sendEmailTemplate(userInfo.email, "Activate Your Account", markup)
+
+    const access_token = await this.authService.generateToken(userInfo, headers);
 
     return {
       ...userInfo,
-      access_token: await this.authService.generateToken(tokenInfo),
+      access_token,
       token_expiry: 86400
     };
   }
 
   @Post('reset-password')
   @UsePipes(ValidationPipe) // Step after request has been made against user forgot code
-  async resetPassword(@Body() body: ResetPasswordBody, @Headers() headers: HeaderParams): Promise<User & { access_token: string, token_expiry: number }> {
-    const [tokenId, appId, userId, userEmail] = await this.authService.getDataFromResetCode(body.code);
+  async resetPassword(@Body() body: ResetPasswordBody): Promise<string> {
     const userInfo = await this.userService.getUserByEmail(body.email);
 
-    if (!userInfo) throw new NotFoundException(`User with email ${body.email} not found`);
-    if (userInfo.id != userId || userInfo.email != userEmail) throw new BadGatewayException(`Code failed to verify ${body.email} information`)
-
-    const parser = new UAParser();
-    parser.setUA(headers['user-agent'])
-
-    const tokenInfo: TokenParams = {
-      id: tokenId,
-      device_type: parser.getDevice().type,
-      browser_name: parser.getBrowser().name,
-      email: userInfo.email,
-      user_id: userInfo.id,
-      api_key: headers['x-api-key'],
+    await this.authService.validateResetCode(userInfo, body.code);
+    
+    if(body.confirm_password !== body.password) {
+      throw new BadRequestException("User Password mismatch")
+    }
+    
+    if(body.password === userInfo.password) {
+      throw new BadRequestException("User new password is matching the old password")
     }
 
-    delete userInfo.password;
-
-    return {
-      ...userInfo,
-      access_token: await this.authService.generateToken(tokenInfo),
-      token_expiry: 86400
-    };
+    return "Password Reset Successful. Try logging with new Password";
   }
 
   @Post('forgot-password')
   @UsePipes(ValidationPipe)
   async forgotPassword(@Body() body: ForgotPasswordBody): Promise<string> {
     const userInfo = await this.userService.getUserByEmail(body.email);
-    const resetCode = await this.authService.generateResetCode(userInfo);
+
+    const markup = await this.authService.generateResetMarkup(userInfo)
     
-    // Send this code to user's email address for secure Authentication
-    return resetCode || "The code has been sent to your email address. Kindly verify the code for further processing"
+    await this.mailService.sendEmailTemplate(userInfo.email, "Reset Your Account", markup)
+
+    return "The code has been sent to your email address. Kindly verify the code for further processing"
   }
 
   @Get('activate')
   @UsePipes(ValidationPipe)
   async activateUser(@Query() query: ActivateUserBody): Promise<User> {
     const user = await this.userService.getUser(query.id);
-    await this.authService.validateActivationToken(user, query.code)
-    user.status = 2;
-    return this.userService.updateUser(user)
+    await this.authService.validateActivationCode(user, query.code)
+    user.status = this.commonService.setValue(user.status, UserStatus.Active);
+    return user;
   }
 
   @Get('activation-template')
@@ -144,6 +136,13 @@ export class AuthController {
     const user = await this.userService.getUser(id)
     const code = await this.authService.generateActivationCode(user);
     return this.authService.generateActivationMarkup(user, code);
+  }
+
+  @Get('reset-template')
+  async getResetTemplate(@Query('id') id): Promise<string> {
+    const user = await this.userService.getUser(id)
+    const code = await this.authService.generateResetCode(user);
+    return this.authService.generateResetMarkup(user, code);
   }
 
 }
