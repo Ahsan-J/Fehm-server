@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ApiModule } from './modules/apikey/api.module';
-import AudioModule from './modules/audio/audio.module';
+import BookModule from './modules/book/book.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { TypeOrmModule, TypeOrmModuleAsyncOptions } from "@nestjs/typeorm";
 import { CommonModule } from './helper-modules/common/common.module';
+import { AuthorModule } from './modules/author/author.module';
+import { ReviewModule } from './modules/review/review.module';
 
 const databaseConfiguration: TypeOrmModuleAsyncOptions = {
   imports: [ConfigModule],
@@ -30,7 +32,9 @@ const databaseConfiguration: TypeOrmModuleAsyncOptions = {
     AuthModule,
     UserModule,
     ApiModule,
-    AudioModule,
+    AuthorModule,
+    BookModule,
+    ReviewModule,
   ],
 })
 export class AppModule { }
