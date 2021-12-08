@@ -2,6 +2,6 @@ import { Injectable } from "@nestjs/common";
 import { UsersService } from "../user/user.service";
 
 @Injectable()
-export class AudioService {
+export class BookService {
     constructor(private userService: UsersService) {}
 }
