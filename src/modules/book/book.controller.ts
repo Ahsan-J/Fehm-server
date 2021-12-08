@@ -1,4 +1,4 @@
-import { BadRequestException, Body, ClassSerializerInterceptor, Controller, Get, Param, Post, Res, StreamableFile, UploadedFile, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Get, Param, Post, Res, StreamableFile, UploadedFile, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { Response } from "express";
 import { createReadStream, stat } from "fs";
@@ -19,14 +19,13 @@ const storage = diskStorage({
 
 @ApiTags('Book')
 @Controller('book')
-@UseInterceptors(ClassSerializerInterceptor)
 export class BookController {
     constructor(private bookService: BookService) { }
 
     @Post('create')
     @UsePipes(ValidationPipe)
     createBook(@Body() createBody: CreateBookBody):any {
-        console.log(createBody)
+        // 
     }
 
     @Post('upload')

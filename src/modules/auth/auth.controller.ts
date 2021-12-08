@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UsePipes, ValidationPipe, ForbiddenException, BadRequestException, ClassSerializerInterceptor, UseInterceptors, Headers, Get, Query, Inject } from '@nestjs/common';
+import { Controller, Post, Body, UsePipes, ValidationPipe, ForbiddenException, BadRequestException, Headers, Get, Query, Inject } from '@nestjs/common';
 import { User } from '../user/user.entity';
 import { UsersService } from '../user/user.service';
 import { ForgotPasswordBody, HeaderParams, LoginBody, RegisterBody, ResetPasswordBody, ActivateUserBody } from './auth.dto';
@@ -10,7 +10,6 @@ import { CommonService } from 'src/helper-modules/common/common.service';
 
 @ApiTags('Auth')
 @Controller('auth')
-@UseInterceptors(ClassSerializerInterceptor)
 export class AuthController {
 
   constructor(

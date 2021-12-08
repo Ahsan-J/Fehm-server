@@ -1,4 +1,4 @@
-import { Body, ClassSerializerInterceptor, Controller, Get, Inject, Param, Post, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, Post, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CommonService } from 'src/helper-modules/common/common.service';
 import { AuthGuard, UseRoles } from '../auth/auth.guard';
@@ -10,7 +10,6 @@ import { UsersService } from './user.service';
 @ApiTags('User')
 @UseGuards(AuthGuard)
 @Controller("user")
-@UseInterceptors(ClassSerializerInterceptor)
 export class UserController {
   constructor(
     @Inject(CommonService)
