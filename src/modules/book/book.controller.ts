@@ -1,13 +1,13 @@
-import { BadRequestException, Body, Controller, Get, Param, Post, Res, StreamableFile, UploadedFile, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Get, Headers, Param, Post, Res, StreamableFile, UploadedFile, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { Response } from "express";
+import { Response, Request } from "express";
 import { createReadStream, stat } from "fs";
 import { diskStorage } from "multer";
 import { extname, join } from "path";
 import { AudioBookUploadBody, CreateBookBody } from "./book.dto";
 import { BookService } from "./book.service";
-import { Book } from './book.entity';
 import { ApiTags } from "@nestjs/swagger";
+import { CreateReadStreamOptions } from "fs/promises";
 
 const storage = diskStorage({
     destination: './uploads',
@@ -24,7 +24,7 @@ export class BookController {
 
     @Post('create')
     @UsePipes(ValidationPipe)
-    createBook(@Body() createBody: CreateBookBody):any {
+    createBook(@Body() createBody: CreateBookBody): any {
         // 
     }
 
@@ -36,28 +36,49 @@ export class BookController {
     }
 
     @Get('stream/:filename')
-    streamBook(@Param('filename') filename, @Res() res: Response) {
+    streamBook(@Param('filename') filename, @Res() res: Response, @Headers() headers: Request['headers']) {
         if (!filename) throw new BadRequestException("Filename cannot be empty");
         const filePath = join(process.cwd(), 'uploads', `${filename}`);
         stat(filePath, (err, stat) => {
             if (err) {
-                const be = new BadRequestException("Requested file not found");  
+                const be = new BadRequestException("Requested file not found");
                 return res.status(be.getStatus()).json(be.getResponse())
-            } 
-            const file = createReadStream(filePath);
-            res.set({
+            }
+
+            let code = 200;
+
+            const opts: CreateReadStreamOptions = {
+                start: 0,
+                end: stat.size
+            };
+
+            const sendingHeaders = {
                 'Content-Type': 'audio/mpeg',
                 'Accept-Ranges': 'bytes',
                 'Content-Length': stat.size,
-            });
+                "Last-Modified": stat.mtime.toUTCString()
+            }
+
+            if (headers.range) {
+                code = 206;
+                
+                const [, , startingRange, endingRange] = /(\w*)=(\d*)-(\d*)/.exec(headers.range);
+                opts.end = parseInt(endingRange, 10) || (stat.size - 1);
+                opts.start = parseInt(startingRange, 10) || 0;
+
+                sendingHeaders["Content-Range"] = `bytes ${opts.start}-${opts.end}/${stat.size}`;
+                sendingHeaders["Content-Length"] = opts.end - opts.start + 1;
+
+                if (opts.start >= stat.size || opts.end >= stat.size) { 
+                    //exceeding range limit and end on proper status code
+                    res.setHeader("Content-Range", `bytes */${stat.size}`);
+                    return res.status(416).end();
+                }
+            }
+
+            const file = createReadStream(filePath, opts);
+            res.status(code).set(sendingHeaders);
             file.pipe(res);
         })
-    }
-
-    @Get('download/:filename')
-    downloadBook(@Param('filename') filename): StreamableFile {
-        const filePath = join(process.cwd(), 'uploads', `${filename}`);
-        const file = createReadStream(filePath);
-        return new StreamableFile(file);
     }
 }
