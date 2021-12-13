@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Headers, Param, Post, Res, StreamableFile, UploadedFile, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Get, Headers, Param, Post, Res, UploadedFile, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { Response, Request } from "express";
 import { createReadStream, stat } from "fs";
@@ -6,8 +6,11 @@ import { diskStorage } from "multer";
 import { extname, join } from "path";
 import { AudioBookUploadBody, CreateBookBody } from "./book.dto";
 import { BookService } from "./book.service";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { CreateReadStreamOptions } from "fs/promises";
+import { AuthGuard, UseRoles } from "../auth/auth.guard";
+import { UserRole } from "../user/user.enum";
+import { Book } from "./book.entity";
 
 const storage = diskStorage({
     destination: './uploads',
@@ -18,14 +21,17 @@ const storage = diskStorage({
 })
 
 @ApiTags('Book')
+@ApiBearerAuth()
 @Controller('book')
+@UseGuards(AuthGuard)
 export class BookController {
     constructor(private bookService: BookService) { }
 
     @Post('create')
     @UsePipes(ValidationPipe)
-    createBook(@Body() createBody: CreateBookBody): any {
-        // 
+    @UseRoles(UserRole.Admin, UserRole.SuperAdmin)
+    createBook(@Body() createBook: CreateBookBody): Promise<Book> {
+        return this.bookService.createBook(createBook);
     }
 
     @Post('upload')

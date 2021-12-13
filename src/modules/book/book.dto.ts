@@ -1,9 +1,8 @@
-import {  IsEnum, IsNotEmpty, IsOptional, IsString, IsUrl, MinLength } from "class-validator";
+import { IsNotEmpty, IsOptional, IsString, IsUrl, MinLength } from "class-validator";
 import { Author } from "../author/author.entity";
 import { User } from "../user/user.entity";
 import { Book } from "./book.entity";
-import { FictionGenre, NonFictionGenre } from "./book.enum";
-import { Genre } from "./genre.entity";
+import { BookGenre } from "./book_genre.entity";
 
 export class AudioBookUploadBody {
 
@@ -16,10 +15,7 @@ export class AudioBookUploadBody {
     
     @IsOptional()
     @IsString()
-    description: Book['description'];
-
-    @IsOptional()
-    genre: Array<Genre['id']>;
+    description: string;
 
     @IsString()
     @IsUrl()
@@ -39,7 +35,7 @@ export class CreateBookBody {
     description: string;
 
     @IsString({ each: true })
-    genre: Array<Genre['id']>;
+    genre: Array<BookGenre['name']>;
 
     @IsString()
     isbn: string;

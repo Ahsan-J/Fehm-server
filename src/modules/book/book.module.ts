@@ -5,16 +5,18 @@ import { BookService } from './book.service';
 import { Book } from './book.entity';
 import { ConfigModule } from '@nestjs/config';
 import { UserModule } from '../user/user.module';
-import { Genre } from './genre.entity';
+import { BookGenre } from './book_genre.entity';
+import { AuthorModule } from '../author/author.module';
 
 @Module({
     imports:[
         ConfigModule, 
-        TypeOrmModule.forFeature([Book, Genre]),
-        UserModule
+        TypeOrmModule.forFeature([Book, BookGenre]),
+        UserModule,
+        AuthorModule
     ],
     providers: [BookService],
     exports: [BookService],
     controllers: [BookController],
 })
-export default class BookModule {}
+export class BookModule {}
