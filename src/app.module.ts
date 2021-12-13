@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ApiModule } from './modules/apikey/api.module';
-import BookModule from './modules/book/book.module';
+import { BookModule } from './modules/book/book.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { TypeOrmModule, TypeOrmModuleAsyncOptions } from "@nestjs/typeorm";
@@ -12,7 +12,7 @@ import { ReviewModule } from './modules/review/review.module';
 const databaseConfiguration: TypeOrmModuleAsyncOptions = {
   imports: [ConfigModule],
   useFactory: async (configService: ConfigService) => ({
-    "type": "postgres",
+    "type": "mysql",
     "host": configService.get('DATABASE_HOST'),
     "port": parseInt(configService.get('DATABASE_PORT')),
     "username": configService.get('DATABASE_USER'),
