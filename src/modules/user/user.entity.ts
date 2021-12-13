@@ -1,7 +1,8 @@
 import { BaseModel } from "../../helper/model";
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import { Column, Entity, JoinColumn, OneToMany, PrimaryColumn,  } from "typeorm";
 import { Exclude } from "class-transformer";
 import { MemberShip, UserRole } from "./user.enum";
+import { UserGenre } from "./user_genre.entity";
 
 @Entity()
 export class User extends BaseModel {
@@ -30,4 +31,8 @@ export class User extends BaseModel {
 
     @Column({default: MemberShip.InActive})
     membership_status: MemberShip;
+
+    @JoinColumn()
+    @OneToMany(() => UserGenre, genre => genre.user)
+    genre: Array<UserGenre>;
 }

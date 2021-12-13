@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createHmac } from 'crypto';
@@ -9,44 +9,78 @@ import moment from 'moment';
 import { nanoid } from 'nanoid';
 import { UserStatus } from './user.enum';
 import { CommonService } from 'src/helper-modules/common/common.service';
+import { UserGenre } from './user_genre.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @InjectRepository(UserGenre)
+    private usersGenre: Repository<UserGenre>,
     private configService: ConfigService,
     @Inject(CommonService)
     private commonService: CommonService
-  ) {}
-  
+  ) { }
+
   async getUser(id: User['id']): Promise<User> {
-    if(!id) {
+    if (!id) {
       throw new BadRequestException(`User's "id" is not definded`)
     }
-    const user = await this.usersRepository.findOne(id);
 
-    if(!user) {
+    const user = await this.usersRepository.findOne(id, {relations:['genre']});
+
+    if (!user) {
       throw new NotFoundException(`No User found for the id ${id}`)
     }
 
     return user;
   }
 
-  async createUser(userInfo : RegisterBody): Promise<User> {
-    const user = await this.usersRepository.create({
-      password: this.getPasswordHash(userInfo.password),
-      email: userInfo.email,
-      contact_number: userInfo.contact_number,
+  async createUser(registerBody: RegisterBody): Promise<User> {
+    
+    if (registerBody.password !== registerBody.confirm_password) {
+      throw new ForbiddenException("Password mismatch")
+    }
+
+    try {
+      const savedUser = await this.getUserByEmail(registerBody.email);
+      if(savedUser) {
+        throw new ForbiddenException("User Already registered with email")
+      }
+    } catch(e) {
+      // console.log(e)
+    }
+
+
+    if(registerBody.confirm_password !== registerBody.password) {
+      throw new BadRequestException("User Password mismatch")
+    }
+
+    const user = await this.usersRepository.save({
+      password: this.getPasswordHash(registerBody.password),
+      email: registerBody.email,
+      contact_number: registerBody.contact_number,
       id: nanoid(),
-      first_name: userInfo.first_name,
-      last_name: userInfo.last_name,
+      first_name: registerBody.first_name,
+      last_name: registerBody.last_name,
       created_at: moment().toISOString(),
       updated_at: moment().toISOString(),
       deleted_at: null,
       status: UserStatus.InActive,
-    })
-    this.usersRepository.insert(user);
+    });
+
+    for (const g of registerBody.genre || []) {
+      await this.usersGenre.save({
+        user: user,
+        name: g,
+        created_at: moment().toISOString(),
+        updated_at: moment().toISOString(),
+        deleted_at: null,
+        status: 1,
+      })
+    }
+    
     return user;
   }
 
@@ -54,22 +88,23 @@ export class UsersService {
     return this.usersRepository.save(userInfo)
   }
 
-  getPasswordHash(password: User['password']):string {
+  getPasswordHash(password: User['password']): string {
     return createHmac('sha256', this.configService.get("APP_ID"))
-    .update(password)
-    .digest('hex');
+      .update(password)
+      .digest('hex');
   }
 
   async getUserByEmail(email: User['email']): Promise<User> {
-    if(!email) {
+    if (!email) {
       throw new BadRequestException(`User's "email" is not definded`)
     }
 
-    const user =  await this.usersRepository.findOne({
+    const user = await this.usersRepository.findOne({
       where: { email },
+      relations :['genre']
     });
 
-    if(!user) {
+    if (!user) {
       throw new NotFoundException(`No User found for the email ${email}`)
     }
 
@@ -77,6 +112,6 @@ export class UsersService {
   }
 
   async getUsers(): Promise<Array<User>> {
-    return await this.usersRepository.find();
+    return await this.usersRepository.find({relations:['genre']});
   }
 }
