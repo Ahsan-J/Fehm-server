@@ -1,5 +1,6 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
+import { IsArray, IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
 import { User } from "../user/user.entity";
+import { UserGenre } from "../user/user_genre.entity";
 
 export class LoginBody {
 
@@ -44,6 +45,9 @@ export class RegisterBody {
     @IsNotEmpty()
     @IsString()
     contact_number: User['contact_number'];
+
+    @IsArray()
+    genre: Array<UserGenre['name']>
 }
 
 export class ResetPasswordBody {

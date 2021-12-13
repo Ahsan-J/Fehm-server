@@ -56,27 +56,7 @@ export class AuthController {
   @UsePipes(ValidationPipe)
   async registerUser(@Body() body: RegisterBody, @Headers() headers: HeaderParams): Promise<User & { access_token: string, token_expiry: number }> {
 
-    if (body.password !== body.confirm_password) {
-      throw new ForbiddenException("Password mismatch")
-    }
-    let userInfo: User
-    try {
-      userInfo = await this.userService.getUserByEmail(body.email);
-    } catch(e) {
-      // console.log(e)
-    }
-
-    if(userInfo) {
-      throw new ForbiddenException("User Already registered with email")
-    }
-
-    if(body.confirm_password !== body.password) {
-      throw new BadRequestException("User Password mismatch")
-    }
-
-    userInfo = await this.userService.createUser(body);
-
-    delete userInfo.password;
+    const userInfo = await this.userService.createUser(body);
 
     const markup = await this.authService.generateActivationMarkup(userInfo)
     

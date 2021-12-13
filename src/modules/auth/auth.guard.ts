@@ -12,7 +12,7 @@ export class AuthGuard implements CanActivate {
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
 
-        const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>('roles', [context.getHandler(), context.getClass()]);
+        const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>('roles', [context.getHandler(), context.getClass()]) || [];
         
         if(requiredRoles.includes(UserRole.SuperAdmin)) {
             return true // Super Admin Validation
@@ -28,7 +28,6 @@ export class AuthGuard implements CanActivate {
         
         try {
             const request = context.switchToHttp().getRequest<Request>();
-            
             // @Todo: Remove Dev key
             if(request.headers.authorization.includes("Z21BYkxwNmhPbkdkUkRsQTBCYkI4fFNwaURldlh8V2w4dzlvN3R6OXotdXRjYVMyOUlRfDEyM3x8fDIwMjEtMTItMDVUMjE6NTA6MjQuNzM1Wg==")) {
                 return true
