@@ -1,6 +1,7 @@
 import { BaseModel } from "src/helper/model";
 import { Column, Entity, OneToMany, PrimaryColumn } from "typeorm";
-import { Genre } from "../book/genre.entity";
+import { Book } from "../book/book.entity";
+import { AuthorGenre } from "./author_genre.entity";
 
 
 @Entity()
@@ -17,6 +18,9 @@ export class Author extends BaseModel {
     @Column()
     url: string;
 
-    @OneToMany(() => Genre, genre => genre.id)
-    genre: Genre[];
+    @OneToMany(() => AuthorGenre, genre => genre.author)
+    genre: AuthorGenre[];
+
+    @OneToMany(() => Book, book => book.author)
+    books: Book[];
 }
