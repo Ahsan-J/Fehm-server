@@ -16,6 +16,7 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "skipLibCheck": true,
-    "incremental": true
+    "incremental": true,
+    "declarationMap": true
   }
 }
