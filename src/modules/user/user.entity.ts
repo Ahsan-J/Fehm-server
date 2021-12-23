@@ -3,6 +3,7 @@ import { Column, Entity, JoinColumn, OneToMany, PrimaryColumn,  } from "typeorm"
 import { Exclude } from "class-transformer";
 import { MemberShip, UserRole } from "./user.enum";
 import { UserGenre } from "./user_genre.entity";
+import { Audio } from "../audio/audio.entity";
 
 @Entity()
 export class User extends BaseModel {
@@ -34,5 +35,8 @@ export class User extends BaseModel {
 
     @JoinColumn()
     @OneToMany(() => UserGenre, genre => genre.user)
-    genre: Array<UserGenre>;
+    genre: UserGenre[];
+
+    @OneToMany(() => Audio, audio => audio.narrator)
+    audio_list: Audio[];
 }

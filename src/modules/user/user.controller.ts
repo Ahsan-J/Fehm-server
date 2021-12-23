@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Param, Post, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CommonService } from 'src/helper-modules/common/common.service';
 import { AuthGuard, UseRoles } from '../auth/auth.guard';
@@ -33,7 +33,6 @@ export class UserController {
 
   @Post('change-role')
   @UseRoles(UserRole.Admin)
-  @UsePipes(ValidationPipe)
   async changeUserRole(@Body() body: ChangeRoleBody): Promise<User> {
     const user = await this.userService.getUserByEmail(body.email);
     user.role = this.commonService.setValue(user.role, body.role);

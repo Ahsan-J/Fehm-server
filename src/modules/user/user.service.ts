@@ -31,7 +31,7 @@ export class UsersService {
     const user = await this.usersRepository.findOne(id, {relations:['genre']});
 
     if (!user) {
-      throw new NotFoundException(`No User found for the id ${id}`)
+      throw new BadRequestException(`No User found for the id ${id}`)
     }
 
     return user;
@@ -69,17 +69,6 @@ export class UsersService {
       deleted_at: null,
       status: UserStatus.InActive,
     });
-
-    for (const g of registerBody.genre || []) {
-      await this.usersGenre.save({
-        user: user,
-        name: g,
-        created_at: moment().toISOString(),
-        updated_at: moment().toISOString(),
-        deleted_at: null,
-        status: 1,
-      })
-    }
     
     return user;
   }
