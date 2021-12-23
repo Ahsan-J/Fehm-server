@@ -16,7 +16,7 @@ export class API extends BaseModel {
 
   @OneToOne(() => User)
   @JoinColumn()
-  created_by: User['id'];
+  created_by: User;
 
   @Column()
   expiry_at: string;

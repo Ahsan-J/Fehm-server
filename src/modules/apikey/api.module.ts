@@ -7,7 +7,11 @@ import { UserModule } from '../user/user.module';
 import { ApiService } from './api.service';
 
 @Module({
-  imports: [ConfigModule, TypeOrmModule.forFeature([API]), UserModule],
+  imports: [
+    ConfigModule, 
+    TypeOrmModule.forFeature([API]), 
+    UserModule
+  ],
   controllers: [ApiController],
   providers: [ApiService]
 })
