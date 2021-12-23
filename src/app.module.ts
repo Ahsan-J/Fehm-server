@@ -8,6 +8,9 @@ import { TypeOrmModule, TypeOrmModuleAsyncOptions } from "@nestjs/typeorm";
 import { CommonModule } from './helper-modules/common/common.module';
 import { AuthorModule } from './modules/author/author.module';
 import { ReviewModule } from './modules/review/review.module';
+import { AudioModule } from './modules/audio/audio.module';
+import { SubscriptionModule } from './modules/subscription/subscription.module';
+import { NotificationModule } from './modules/notification/notification.module';
 
 const databaseConfiguration: TypeOrmModuleAsyncOptions = {
   imports: [ConfigModule],
@@ -35,6 +38,9 @@ const databaseConfiguration: TypeOrmModuleAsyncOptions = {
     AuthorModule,
     BookModule,
     ReviewModule,
+    AudioModule,
+    SubscriptionModule,
+    NotificationModule,
   ],
 })
 export class AppModule { }
