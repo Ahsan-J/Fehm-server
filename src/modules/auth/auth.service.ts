@@ -86,6 +86,58 @@ export class AuthService {
         return true;
     }
 
+    async removeToken(headers: Request['headers']): Promise<any> {
+        if(!headers['x-api-key']) {
+            throw new ForbiddenException("You Application is not authorized to use this API")
+        }
+        
+        if(!headers.authorization) {
+            throw new UnauthorizedException("Authorization token is missing");
+        }
+        
+        const code = headers.authorization.replace('Bearer ','');
+        
+        const [,,
+            userId,,
+            deviceType,
+            browser,,
+        ] = Buffer.from(code, 'base64').toString('ascii').split("|");
+        
+        return await this.cacheService.del(`${userId}_${browser}_${deviceType}`)
+    }
+
+    getTokenData(headers: Request['headers']): {[key in string]: string} {
+        if(!headers['x-api-key']) {
+            throw new ForbiddenException("You Application is not authorized to use this API")
+        }
+        
+        if(!headers.authorization) {
+            throw new UnauthorizedException("Authorization token is missing");
+        }
+        
+        const code = headers.authorization.replace('Bearer ','');
+        
+        const [
+            tokenId,
+            appId,
+            userId,
+            apiKey,
+            deviceType,
+            browser,
+            tokenTime,
+        ] = Buffer.from(code, 'base64').toString('ascii').split("|");
+
+        return {
+            tokenId,
+            appId,
+            userId,
+            apiKey,
+            deviceType,
+            browser,
+            tokenTime,
+        }
+    }
+
     // Reset Process ************************************************************
 
     async generateResetCode(userInfo: User): Promise<string> {

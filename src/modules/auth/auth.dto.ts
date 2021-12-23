@@ -45,9 +45,6 @@ export class RegisterBody {
     @IsNotEmpty()
     @IsString()
     contact_number: User['contact_number'];
-
-    @IsArray()
-    genre: Array<UserGenre['name']>
 }
 
 export class ResetPasswordBody {

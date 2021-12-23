@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UsePipes, ValidationPipe, ForbiddenException, BadRequestException, Headers, Get, Query, Inject } from '@nestjs/common';
+import { Controller, Post, Body, ForbiddenException, BadRequestException, Headers, Get, Query, Inject } from '@nestjs/common';
 import { User } from '../user/user.entity';
 import { UsersService } from '../user/user.service';
 import { ForgotPasswordBody, HeaderParams, LoginBody, RegisterBody, ResetPasswordBody, ActivateUserBody } from './auth.dto';
@@ -7,6 +7,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { MailService } from '../../helper-modules/mail/mail.service';
 import { UserStatus } from '../user/user.enum';
 import { CommonService } from 'src/helper-modules/common/common.service';
+import { Request } from "express";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -21,7 +22,6 @@ export class AuthController {
   ) { }
 
   @Post('login')
-  @UsePipes(ValidationPipe)
   async loginUser(@Body() body: LoginBody, @Headers() headers: HeaderParams): Promise<User & { access_token: string, token_expiry: number }> {
 
     const userInfo: User = await this.userService.getUserByEmail(body.email);
@@ -40,7 +40,6 @@ export class AuthController {
       throw new BadRequestException("Password mismatch")
     }
 
-
     delete userInfo.password;
 
     const access_token = await this.authService.generateToken(userInfo, headers);
@@ -52,8 +51,12 @@ export class AuthController {
     }
   }
 
+  @Post('logout')
+  async logoutUser(@Headers() headers: Request['headers']): Promise<string> {
+    return await this.authService.removeToken(headers);
+  }
+
   @Post('register')
-  @UsePipes(ValidationPipe)
   async registerUser(@Body() body: RegisterBody, @Headers() headers: HeaderParams): Promise<User & { access_token: string, token_expiry: number }> {
 
     const userInfo = await this.userService.createUser(body);
@@ -72,7 +75,6 @@ export class AuthController {
   }
 
   @Post('reset-password')
-  @UsePipes(ValidationPipe) // Step after request has been made against user forgot code
   async resetPassword(@Body() body: ResetPasswordBody): Promise<string> {
     const userInfo = await this.userService.getUserByEmail(body.email);
 
@@ -90,7 +92,6 @@ export class AuthController {
   }
 
   @Post('forgot-password')
-  @UsePipes(ValidationPipe)
   async forgotPassword(@Body() body: ForgotPasswordBody): Promise<string> {
     const userInfo = await this.userService.getUserByEmail(body.email);
 
@@ -102,7 +103,6 @@ export class AuthController {
   }
 
   @Get('activate')
-  @UsePipes(ValidationPipe)
   async activateUser(@Query() query: ActivateUserBody): Promise<User> {
     const user = await this.userService.getUser(query.id);
     await this.authService.validateActivationCode(user, query.code)

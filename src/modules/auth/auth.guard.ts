@@ -13,6 +13,13 @@ export class AuthGuard implements CanActivate {
     async canActivate(context: ExecutionContext): Promise<boolean> {
 
         const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>('roles', [context.getHandler(), context.getClass()]) || [];
+        const request = context.switchToHttp().getRequest<Request>();
+        
+        // @Todo: Remove Dev key
+        if(request.headers.authorization.includes("Z21BYkxwNmhPbkdkUkRsQTBCYkI4fFNwaURldlh8V2w4dzlvN3R6OXotdXRjYVMyOUlRfDEyM3x8fDIwMjEtMTItMDVUMjE6NTA6MjQuNzM1Wg==")) {
+            request.auth = this.authService.getTokenData(request.headers);
+            return true
+        }
         
         if(requiredRoles.includes(UserRole.SuperAdmin)) {
             return true // Super Admin Validation
@@ -27,13 +34,14 @@ export class AuthGuard implements CanActivate {
         }
         
         try {
-            const request = context.switchToHttp().getRequest<Request>();
-            // @Todo: Remove Dev key
-            if(request.headers.authorization.includes("Z21BYkxwNmhPbkdkUkRsQTBCYkI4fFNwaURldlh8V2w4dzlvN3R6OXotdXRjYVMyOUlRfDEyM3x8fDIwMjEtMTItMDVUMjE6NTA6MjQuNzM1Wg==")) {
-                return true
+
+            if(this.authService.validateAccessToken(request.headers)) {
+                request.auth = this.authService.getTokenData(request.headers);
+                return true; 
+            } else {
+                return false
             }
 
-            return this.authService.validateAccessToken(request.headers)
         } catch(e) {
             return false;
         }
