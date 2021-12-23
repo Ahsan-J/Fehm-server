@@ -1,26 +1,6 @@
-import { IsNotEmpty, IsOptional, IsString, IsUrl, MinLength } from "class-validator";
+import { IsOptional, IsString, IsUrl, MinLength } from "class-validator";
 import { Author } from "../author/author.entity";
-import { User } from "../user/user.entity";
-import { Book } from "./book.entity";
 import { BookGenre } from "./book_genre.entity";
-
-export class AudioBookUploadBody {
-
-    @IsNotEmpty()
-    @IsString()
-    book_id: Book['id'];
-
-    @IsString()
-    narrator_id: User['id']
-    
-    @IsOptional()
-    @IsString()
-    description: string;
-
-    @IsString()
-    @IsUrl()
-    audio_url: string;
-}
 
 export class CreateBookBody {
 
