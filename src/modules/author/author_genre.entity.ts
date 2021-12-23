@@ -1,10 +1,9 @@
-import { BaseModel } from "src/helper/model";
 import { Column, Entity, ManyToOne, PrimaryColumn } from "typeorm";
 import { FictionGenre, NonFictionGenre } from "../book/book.enum";
 import { Author } from "./author.entity";
 
 @Entity()
-export class AuthorGenre extends BaseModel {
+export class AuthorGenre {
     @PrimaryColumn()
     id: string;
 
