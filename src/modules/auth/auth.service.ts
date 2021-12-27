@@ -3,7 +3,6 @@ import { ConfigService } from "@nestjs/config";
 import { nanoid } from "nanoid";
 import { CacheService } from "../../helper-modules/cache/cache.service";
 import { User } from "../user/user.entity";
-import { HeaderParams } from "./auth.dto";
 import moment from 'moment';
 import Handlebars from "handlebars";
 import { join } from 'path';
@@ -19,7 +18,7 @@ export class AuthService {
         private cacheService: CacheService,
     ) { }
 
-    async generateToken(user: User, headers: HeaderParams) {
+    async generateToken(user: User, headers: Request['headers']) {
 
         if(!headers['x-api-key']) {
             throw new ForbiddenException("You Application is not authorized to use this API")

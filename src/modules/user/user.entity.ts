@@ -1,5 +1,5 @@
 import { BaseModel } from "../../helper/model";
-import { Column, Entity, JoinColumn, OneToMany, PrimaryColumn,  } from "typeorm";
+import { Column, Entity, JoinColumn, OneToMany, PrimaryColumn } from "typeorm";
 import { Exclude } from "class-transformer";
 import { MemberShip, UserRole } from "./user.enum";
 import { UserGenre } from "./user_genre.entity";

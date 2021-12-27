@@ -16,7 +16,7 @@ export class AuthGuard implements CanActivate {
         const request = context.switchToHttp().getRequest<Request>();
         
         // @Todo: Remove Dev key
-        if(request.headers.authorization.includes("Z21BYkxwNmhPbkdkUkRsQTBCYkI4fFNwaURldlh8V2w4dzlvN3R6OXotdXRjYVMyOUlRfDEyM3x8fDIwMjEtMTItMDVUMjE6NTA6MjQuNzM1Wg==")) {
+        if(request.headers.authorization?.includes("Z21BYkxwNmhPbkdkUkRsQTBCYkI4fFNwaURldlh8V2w4dzlvN3R6OXotdXRjYVMyOUlRfDEyM3x8fDIwMjEtMTItMDVUMjE6NTA6MjQuNzM1Wg==")) {
             request.auth = this.authService.getTokenData(request.headers);
             return true
         }

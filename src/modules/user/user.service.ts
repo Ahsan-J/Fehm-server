@@ -43,15 +43,17 @@ export class UsersService {
       throw new ForbiddenException("Password mismatch")
     }
 
+    let savedUser: User;
+
     try {
-      const savedUser = await this.getUserByEmail(registerBody.email);
-      if(savedUser) {
-        throw new ForbiddenException("User Already registered with email")
-      }
+      savedUser = await this.getUserByEmail(registerBody.email);
     } catch(e) {
       // console.log(e)
     }
-
+    
+    if(savedUser) {
+      throw new ForbiddenException("User Already registered with email")
+    }
 
     if(registerBody.confirm_password !== registerBody.password) {
       throw new BadRequestException("User Password mismatch")

@@ -1,6 +1,5 @@
-import { IsArray, IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
+import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
 import { User } from "../user/user.entity";
-import { UserGenre } from "../user/user_genre.entity";
 
 export class LoginBody {
 
@@ -71,17 +70,6 @@ export class ForgotPasswordBody {
     @IsString()
     @IsEmail()
     email: User['email']
-}
-
-export class HeaderParams {
-    
-    @IsNotEmpty()
-    @IsString()
-    "x-api-key": string;
-
-    @IsNotEmpty()
-    @IsString()
-    "user-agent": string;
 }
 
 export class ActivateUserBody {

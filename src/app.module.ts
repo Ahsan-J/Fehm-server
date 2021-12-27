@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ApiModule } from './modules/apikey/api.module';
 import { BookModule } from './modules/book/book.module';
@@ -11,6 +11,7 @@ import { ReviewModule } from './modules/review/review.module';
 import { AudioModule } from './modules/audio/audio.module';
 import { SubscriptionModule } from './modules/subscription/subscription.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import { AuthUserMiddleware } from './app.middleware';
 
 const databaseConfiguration: TypeOrmModuleAsyncOptions = {
   imports: [ConfigModule],
@@ -43,4 +44,8 @@ const databaseConfiguration: TypeOrmModuleAsyncOptions = {
     NotificationModule,
   ],
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(AuthUserMiddleware).exclude("auth").forRoutes("*")
+  }
+}

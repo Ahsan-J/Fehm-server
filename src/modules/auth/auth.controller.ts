@@ -1,7 +1,7 @@
-import { Controller, Post, Body, ForbiddenException, BadRequestException, Headers, Get, Query, Inject } from '@nestjs/common';
+import { Controller, Post, Body, ForbiddenException, BadRequestException, Headers, Get, Query, Inject, Session } from '@nestjs/common';
 import { User } from '../user/user.entity';
 import { UsersService } from '../user/user.service';
-import { ForgotPasswordBody, HeaderParams, LoginBody, RegisterBody, ResetPasswordBody, ActivateUserBody } from './auth.dto';
+import { ForgotPasswordBody, LoginBody, RegisterBody, ResetPasswordBody, ActivateUserBody } from './auth.dto';
 import { AuthService } from './auth.service';
 import { ApiTags } from '@nestjs/swagger';
 import { MailService } from '../../helper-modules/mail/mail.service';
@@ -22,7 +22,7 @@ export class AuthController {
   ) { }
 
   @Post('login')
-  async loginUser(@Body() body: LoginBody, @Headers() headers: HeaderParams): Promise<User & { access_token: string, token_expiry: number }> {
+  async loginUser(@Body() body: LoginBody, @Headers() headers: Request['headers'], @Session() session: Record<string, any>): Promise<User & { access_token: string, token_expiry: number }> {
 
     const userInfo: User = await this.userService.getUserByEmail(body.email);
 
@@ -41,6 +41,9 @@ export class AuthController {
     }
 
     delete userInfo.password;
+  
+    // setting value for @AuthUser in auth.decorator.ts
+    session.user = userInfo;
 
     const access_token = await this.authService.generateToken(userInfo, headers);
 
@@ -52,12 +55,13 @@ export class AuthController {
   }
 
   @Post('logout')
-  async logoutUser(@Headers() headers: Request['headers']): Promise<string> {
+  async logoutUser(@Headers() headers: Request['headers'], @Session() session: Record<string, any>): Promise<string> {
+    delete session.user;
     return await this.authService.removeToken(headers);
   }
 
   @Post('register')
-  async registerUser(@Body() body: RegisterBody, @Headers() headers: HeaderParams): Promise<User & { access_token: string, token_expiry: number }> {
+  async registerUser(@Body() body: RegisterBody, @Headers() headers: Request['headers'], @Session() session: Record<string, any>): Promise<User & { access_token: string, token_expiry: number }> {
 
     const userInfo = await this.userService.createUser(body);
 
@@ -66,6 +70,8 @@ export class AuthController {
     await this.mailService.sendEmailTemplate(userInfo.email, "Activate Your Account", markup)
 
     const access_token = await this.authService.generateToken(userInfo, headers);
+
+    session.user = userInfo;
 
     return {
       ...userInfo,

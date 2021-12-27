@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Inject, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CommonService } from 'src/helper-modules/common/common.service';
+import { AuthUser } from '../auth/auth.decorator';
 import { AuthGuard, UseRoles } from '../auth/auth.guard';
 import { ChangeRoleBody } from './user.dto';
 import { User } from './user.entity';

@@ -1,18 +1,18 @@
 export enum UserStatus {
-    InActive = 0,
-    Active = 1,
-    Blocked = 2,
+    InActive = 1,
+    Active = 2,
+    Blocked = 4,
 }
 
 export enum MemberShip {
-    InActive = 0,
-    Active = 1,
-    Pro = 2,
+    InActive = 1,
+    Active = 2,
+    Pro = 4,
 }
 
 export enum UserRole {
-    SuperAdmin = 0,
-    Admin = 1,
-    User = 2,
-    Narrator = 4,
+    SuperAdmin = 1,
+    Admin = 2,
+    User = 4,
+    Narrator = 8,
 }
