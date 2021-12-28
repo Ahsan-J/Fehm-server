@@ -1,4 +1,4 @@
-import { Controller, Post, Body, ForbiddenException, BadRequestException, Headers, Get, Query, Inject, Session } from '@nestjs/common';
+import { Controller, Post, Body, ForbiddenException, BadRequestException, Headers, Get, Query, Inject, Session, Res } from '@nestjs/common';
 import { User } from '../user/user.entity';
 import { UsersService } from '../user/user.service';
 import { ForgotPasswordBody, LoginBody, RegisterBody, ResetPasswordBody, ActivateUserBody } from './auth.dto';
@@ -7,8 +7,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { MailService } from '../../helper-modules/mail/mail.service';
 import { UserStatus } from '../user/user.enum';
 import { CommonService } from 'src/helper-modules/common/common.service';
-import { Request } from "express";
-
+import { Response, Request } from "express";
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
@@ -117,17 +116,19 @@ export class AuthController {
   }
 
   @Get('activation-template')
-  async getActivationTemplate(@Query('id') id): Promise<string> {
+  async getActivationTemplate(@Query('id') id, @Res() res: Response) {
     const user = await this.userService.getUser(id)
     const code = await this.authService.generateActivationCode(user);
-    return this.authService.generateActivationMarkup(user, code);
+    res.setHeader("Content-Type", `text/html`);
+    res.send(await this.authService.generateActivationMarkup(user, code))
   }
 
   @Get('reset-template')
-  async getResetTemplate(@Query('id') id): Promise<string> {
+  async getResetTemplate(@Query('id') id, @Res() res: Response) {
     const user = await this.userService.getUser(id)
     const code = await this.authService.generateResetCode(user);
-    return this.authService.generateResetMarkup(user, code);
+    res.setHeader("Content-Type", `text/html`);
+    res.send(await this.authService.generateResetMarkup(user, code))
   }
 
 }

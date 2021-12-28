@@ -46,6 +46,6 @@ const databaseConfiguration: TypeOrmModuleAsyncOptions = {
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuthUserMiddleware).exclude("auth").forRoutes("*")
+    consumer.apply(AuthUserMiddleware).exclude("auth/(.*)", "public/(.*)").forRoutes("*")
   }
 }

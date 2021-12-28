@@ -5,15 +5,18 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import session from 'express-session';
 import { TransformInterceptor } from './helper/response.interceptor';
 import { AppModule } from './app.module';
+import { join } from 'path';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  const configService = app.get(ConfigService);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
+  app.useStaticAssets(join(process.cwd(), 'public'));
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
   app.useGlobalInterceptors(new TransformInterceptor());
 
+  const configService = app.get(ConfigService);
   app.use(
     session({
       secret: configService.get("APP_ID"),

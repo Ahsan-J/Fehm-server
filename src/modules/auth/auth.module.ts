@@ -10,7 +10,7 @@ import { AuthService } from './auth.service';
 @Module({
   imports: [ 
     RedisModule,
-    ConfigModule, 
+    ConfigModule,
     UserModule,
     MailModule
   ],
