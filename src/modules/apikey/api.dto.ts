@@ -1,7 +1,6 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
-import { User } from "../user/user.entity";
+import { IsISO8601, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
-export class AccessKeyBody {
+export class CreateAccessKey {
     @IsNotEmpty()
     @IsString()
     name: string;
@@ -12,8 +11,23 @@ export class AccessKeyBody {
     @IsNotEmpty()
     @IsNumber()
     access_level: number;
+}
 
-    @IsNotEmpty()
+export class UpdateAccessKey {
+    @IsOptional()
     @IsString()
-    user_id: User['id'];
+    name: string;
+  
+    @IsOptional()
+    @IsString()
+    description: string;
+  
+    @IsString()
+    @IsOptional()
+    @IsISO8601()
+    expiry_at: string;
+  
+    @IsOptional()
+    @IsNumber()
+    access_level: number;
 }

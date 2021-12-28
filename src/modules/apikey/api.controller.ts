@@ -1,8 +1,10 @@
-import { Body, Controller, Get, Param, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
+import { AuthUser } from "../auth/auth.decorator";
 import { UseRoles } from "../auth/auth.guard";
+import { User } from "../user/user.entity";
 import { UserRole } from "../user/user.enum";
-import { AccessKeyBody } from "./api.dto";
+import { CreateAccessKey, UpdateAccessKey } from "./api.dto";
 import { API } from "./api.entity";
 import { ApiService } from './api.service';
 
@@ -15,9 +17,8 @@ export class ApiController {
     
     @Post()
     @UseRoles(UserRole.SuperAdmin)
-    async createAPIKey(@Body() body: AccessKeyBody): Promise<API> {
-        // Validate the key presence
-        return await this.apiService.createApiKey(body)
+    async createAPIKey(@Body() body: CreateAccessKey, @AuthUser() user: User): Promise<API> {
+        return await this.apiService.createApiKey(body, user);
     }
 
     @Get()
@@ -30,5 +31,17 @@ export class ApiController {
     @UseRoles(UserRole.SuperAdmin, UserRole.Admin)
     async getApiKey(@Param('id') id): Promise<API> {
         return await this.apiService.getApiKey(id)
+    }
+
+    @Delete(':id')
+    @UseRoles(UserRole.SuperAdmin)
+    async deleteApiKey(@Param('id') id): Promise<boolean> {
+        return await this.apiService.deleteApiKey(id)
+    }
+
+    @Put(':id')
+    @UseRoles(UserRole.SuperAdmin)
+    async updateApiKey(@Param('id') id, @Body() body: UpdateAccessKey): Promise<API> {
+        return await this.apiService.updateApiKey(id, {...body});
     }
 }
