@@ -9,7 +9,8 @@ import { AudioBookUpload } from './audio.dto';
 import { AudioService } from './audio.service';
 import { Audio } from './audio.entity';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { AuthGuard } from '../auth/auth.guard';
+import { AuthGuard, UseAccess } from '../auth/auth.guard';
+import { APIAccessLevel } from '../apikey/api.enum';
 
 const storage = diskStorage({
     destination: './uploads',
@@ -22,6 +23,7 @@ const storage = diskStorage({
 @ApiTags('Audio')
 @ApiBearerAuth()
 @Controller('audio')
+@UseAccess(APIAccessLevel.Standard)
 @UseGuards(AuthGuard)
 export class AudioController {
 

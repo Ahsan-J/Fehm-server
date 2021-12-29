@@ -8,8 +8,12 @@ import { MailService } from '../../helper-modules/mail/mail.service';
 import { UserStatus } from '../user/user.enum';
 import { CommonService } from 'src/helper-modules/common/common.service';
 import { Response, Request } from "express";
+import { TokenService } from 'src/helper-modules/token/token.service';
+import { UseAccess } from './auth.guard';
+import { APIAccessLevel } from '../apikey/api.enum';
 @ApiTags('Auth')
 @Controller('auth')
+@UseAccess(APIAccessLevel.Standard)
 export class AuthController {
 
   constructor(
@@ -17,7 +21,9 @@ export class AuthController {
     private userService: UsersService,
     private mailService: MailService,
     @Inject(CommonService)
-    private commonService: CommonService
+    private commonService: CommonService,
+    @Inject(TokenService)
+    private tokenService: TokenService,
   ) { }
 
   @Post('login')
@@ -44,7 +50,7 @@ export class AuthController {
     // setting value for @AuthUser in auth.decorator.ts
     session.user = userInfo;
 
-    const access_token = await this.authService.generateToken(userInfo, headers);
+    const access_token = await this.tokenService.generateToken(userInfo, headers);
 
     return {
       ...userInfo,
@@ -56,7 +62,7 @@ export class AuthController {
   @Post('logout')
   async logoutUser(@Headers() headers: Request['headers'], @Session() session: Record<string, any>): Promise<string> {
     delete session.user;
-    return await this.authService.removeToken(headers);
+    return await this.tokenService.removeToken(headers);
   }
 
   @Post('register')
@@ -68,7 +74,7 @@ export class AuthController {
     
     await this.mailService.sendEmailTemplate(userInfo.email, "Activate Your Account", markup)
 
-    const access_token = await this.authService.generateToken(userInfo, headers);
+    const access_token = await this.tokenService.generateToken(userInfo, headers);
 
     session.user = userInfo;
 

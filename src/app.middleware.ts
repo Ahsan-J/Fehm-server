@@ -1,17 +1,17 @@
 import { ForbiddenException, Injectable, NestMiddleware } from "@nestjs/common";
-import { AuthService } from "./modules/auth/auth.service";
+import { TokenService } from "./helper-modules/token/token.service";
 import { UsersService } from "./modules/user/user.service";
 
 @Injectable()
-export class AuthUserMiddleware implements NestMiddleware{
+export class InjectSessionUser implements NestMiddleware{
     constructor(
         private userService: UsersService,
-        private authService: AuthService,
+        private tokenService: TokenService,
         ) {}
         
     async use(req: any, res: any, next: () => void) {
         try {
-            const { userId } = this.authService.getTokenData(req.headers)
+            const { userId } = this.tokenService.getTokenData(req.headers)
             if(!req.session.user && req.headers?.authorization) {
                 req.session.user = await this.userService.getUser(userId)
             }

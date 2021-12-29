@@ -11,7 +11,9 @@ import { ReviewModule } from './modules/review/review.module';
 import { AudioModule } from './modules/audio/audio.module';
 import { SubscriptionModule } from './modules/subscription/subscription.module';
 import { NotificationModule } from './modules/notification/notification.module';
-import { AuthUserMiddleware } from './app.middleware';
+import { InjectSessionUser } from './app.middleware';
+import { TokenModule } from './helper-modules/token/token.module';
+import { GenreModule } from './modules/genre/genre.module';
 
 const databaseConfiguration: TypeOrmModuleAsyncOptions = {
   imports: [ConfigModule],
@@ -33,9 +35,11 @@ const databaseConfiguration: TypeOrmModuleAsyncOptions = {
     ConfigModule.forRoot(),
     TypeOrmModule.forRootAsync(databaseConfiguration),
     CommonModule,
+    TokenModule,
+    GenreModule,
+    ApiModule,
     AuthModule,
     UserModule,
-    ApiModule,
     AuthorModule,
     BookModule,
     ReviewModule,
@@ -46,6 +50,6 @@ const databaseConfiguration: TypeOrmModuleAsyncOptions = {
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuthUserMiddleware).exclude("auth/(.*)", "public/(.*)").forRoutes("*")
+    consumer.apply(InjectSessionUser).exclude("auth/(.*)", "public/(.*)").forRoutes("*")
   }
 }
