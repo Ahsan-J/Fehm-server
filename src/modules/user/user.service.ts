@@ -9,15 +9,12 @@ import moment from 'moment';
 import { nanoid } from 'nanoid';
 import { UserStatus } from './user.enum';
 import { CommonService } from 'src/helper-modules/common/common.service';
-import { UserGenre } from './user_genre.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-    @InjectRepository(UserGenre)
-    private usersGenre: Repository<UserGenre>,
     private configService: ConfigService,
     @Inject(CommonService)
     private commonService: CommonService

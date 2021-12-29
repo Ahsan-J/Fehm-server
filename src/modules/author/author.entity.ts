@@ -1,8 +1,7 @@
 import { BaseModel } from "src/helper/model";
-import { Column, Entity, OneToMany, PrimaryColumn } from "typeorm";
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToMany, PrimaryColumn } from "typeorm";
 import { Book } from "../book/book.entity";
-import { AuthorGenre } from "./author_genre.entity";
-
+import { Genre } from "../genre/genre.entity";
 
 @Entity()
 export class Author extends BaseModel {
@@ -18,9 +17,11 @@ export class Author extends BaseModel {
     @Column()
     url: string;
 
-    @OneToMany(() => AuthorGenre, genre => genre.author)
-    genre: AuthorGenre[];
+    @ManyToMany(() => Genre)
+    @JoinTable()
+    genre: Genre[];
 
     @OneToMany(() => Book, book => book.author)
+    @JoinColumn()
     books: Book[];
 }

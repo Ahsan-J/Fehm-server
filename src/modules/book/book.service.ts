@@ -3,18 +3,17 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { nanoid } from "nanoid";
 import { Repository } from "typeorm";
 import { AuthorService } from "../author/author.service";
+import { GenreService } from "../genre/genre.service";
 import { CreateBookBody } from "./book.dto";
 import { Book } from "./book.entity";
-import { BookGenre } from "./book_genre.entity";
 
 @Injectable()
 export class BookService {
     constructor(
         @InjectRepository(Book)
         private bookRepository: Repository<Book>,
-        @InjectRepository(BookGenre)
-        private bookGenreRepository: Repository<BookGenre>,
         private authorService: AuthorService,
+        private genreService: GenreService,
     ) {}
 
     async createBook(createBook: CreateBookBody) : Promise<Book> {
@@ -37,16 +36,8 @@ export class BookService {
             status: 1,
         });
 
-        for(const genre of createBook.genre) {
-            if (!author.genre.find(g => g.name == genre)) {
-                await this.authorService.addGenre(author, genre)
-            }
-
-            await this.bookGenreRepository.save({
-                name: genre,
-                book,
-            })
-        }
+        await this.genreService.addGenre(createBook.genre, book);
+        await this.genreService.addGenre(createBook.genre, author);
 
         return book;
     }

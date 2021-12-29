@@ -1,6 +1,6 @@
 import { IsOptional, IsString, IsUrl, MinLength } from "class-validator";
 import { Author } from "../author/author.entity";
-import { BookGenre } from "./book_genre.entity";
+import { Genre } from "../genre/genre.entity";
 
 export class CreateBookBody {
 
@@ -15,7 +15,7 @@ export class CreateBookBody {
     description: string;
 
     @IsString({ each: true })
-    genre: Array<BookGenre['name']>;
+    genre: Array<Genre['id']>;
 
     @IsString()
     isbn: string;

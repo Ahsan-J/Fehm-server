@@ -2,17 +2,17 @@ import { BadRequestException, ForbiddenException, Injectable } from "@nestjs/com
 import { InjectRepository } from "@nestjs/typeorm";
 import { nanoid } from "nanoid";
 import { Repository } from "typeorm";
+import { Genre } from "../genre/genre.entity";
+import { GenreService } from "../genre/genre.service";
 import { CreateAuthor } from "./author.dto";
 import { Author } from "./author.entity";
-import { AuthorGenre } from "./author_genre.entity";
 
 @Injectable()
 export class AuthorService {
     constructor(
         @InjectRepository(Author)
         private authorRepository: Repository<Author>,
-        @InjectRepository(AuthorGenre)
-        private authorGenreRepository: Repository<AuthorGenre>,
+        private genreService: GenreService,
     ) { }
 
     async getAuthor(id: Author['id']): Promise<Author> {
@@ -43,10 +43,7 @@ export class AuthorService {
         })
     }
 
-    async addGenre(author: Author, genre: AuthorGenre['name']): Promise<AuthorGenre> {
-        return await this.authorGenreRepository.save({
-            author,
-            name: genre,
-        });
+    async addGenre(author: Author, genre: Genre['name']) {
+        return await this.genreService.addGenre([], author);
     }
 }

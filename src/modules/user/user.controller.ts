@@ -7,7 +7,6 @@ import { ChangeRoleBody } from './user.dto';
 import { User } from './user.entity';
 import { UserRole } from './user.enum';
 import { UsersService } from './user.service';
-import { UserGenre } from './user_genre.entity';
 
 @ApiTags('User')
 @ApiBearerAuth()
@@ -38,10 +37,5 @@ export class UserController {
     const user = await this.userService.getUserByEmail(body.email);
     user.role = this.commonService.setValue(user.role, body.role);
     return await this.userService.updateUser(user);
-  }
-
-  @Get('/:id/genre')
-  async getUserGenre(@Param('id') id: string): Promise<Array<UserGenre>> {
-    return (await this.userService.getUser(id)).genre;
   }
 }

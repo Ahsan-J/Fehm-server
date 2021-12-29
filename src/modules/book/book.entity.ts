@@ -1,8 +1,8 @@
 import { BaseModel } from "src/helper/model";
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
 import { Audio } from "../audio/audio.entity";
 import { Author } from "../author/author.entity";
-import { BookGenre } from "./book_genre.entity";
+import { Genre } from "../genre/genre.entity";
 
 @Entity()
 export class Book extends BaseModel {
@@ -25,9 +25,9 @@ export class Book extends BaseModel {
     @Column()
     purchase_url: string;
     
-    @JoinColumn()
-    @OneToMany(() => BookGenre, genre => genre.book)
-    genre: BookGenre[];
+    @ManyToMany(() => Genre)
+    @JoinTable()
+    genre: Genre[];
 
     @OneToMany(() => Audio, audio => audio.book)
     audio_list: Audio[];

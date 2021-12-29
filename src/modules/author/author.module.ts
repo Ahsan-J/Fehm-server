@@ -4,12 +4,13 @@ import { AuthorService } from './author.service';
 import { ConfigModule } from '@nestjs/config';
 import { Author } from './author.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthorGenre } from './author_genre.entity';
+import { GenreModule } from '../genre/genre.module';
 
 @Module({
     imports:[
         ConfigModule, 
-        TypeOrmModule.forFeature([Author, AuthorGenre]),
+        TypeOrmModule.forFeature([Author]),
+        GenreModule,
     ],
     providers: [AuthorService],
     exports: [AuthorService],
