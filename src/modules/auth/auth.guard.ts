@@ -1,6 +1,7 @@
 import { Injectable, CanActivate, ExecutionContext, Inject, SetMetadata } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
+import { CommonService } from 'src/helper-modules/common/common.service';
 import { TokenService } from 'src/helper-modules/token/token.service';
 import { APIAccessLevel } from '../apikey/api.enum';
 import { UserRole } from '../user/user.enum';
@@ -13,6 +14,8 @@ export class AuthGuard implements CanActivate {
     constructor(
         @Inject(TokenService) 
         private tokenService: TokenService, 
+        @Inject(CommonService)
+        private commonService: CommonService,
         private reflector: Reflector
     ) { }
 
@@ -22,14 +25,11 @@ export class AuthGuard implements CanActivate {
         const apiAccess = this.reflector.getAllAndOverride<UserRole[]>('access', [context.getHandler(), context.getClass()]) || [];
         const request = context.switchToHttp().getRequest<Request>();
         
-        // @Todo: Remove Dev key
-        if(request.headers.authorization?.includes("dev-token")) return true
-        
         try {
             if(await this.tokenService.validateAccessToken(request.headers)) {
                 const auth = this.tokenService.getTokenData(request.headers);
-                if(!apiAccess.includes(auth.apiAccess)) return false;
-                if(!requiredRoles.includes(auth.userRole)) return false;
+                if(!apiAccess.some(access => this.commonService.checkValue(auth.apiAccess, access))) return false;
+                if(!requiredRoles.some(role => this.commonService.checkValue(auth.userRole, role))) return false;
                 return true; 
             }
         } catch(e) {

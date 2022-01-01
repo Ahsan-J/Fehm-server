@@ -20,7 +20,6 @@ export class ApiService {
   ) {}
 
   async createApiKey(keyInfo : CreateAccessKey, creator: User): Promise<API> {
-
     return await this.apiRepository.save({
       key: nanoid(),
       app_id: this.configService.get('APP_ID'),
@@ -71,7 +70,7 @@ export class ApiService {
     return await this.apiRepository.save(apiKey)
   }
 
-  async validateApiKeyAccess(key: API['key'], access: API['access_level']): Promise<boolean> {
+  async validateApiKeyAccess(key: API['key'], access: API['access_level'] = APIAccessLevel.Standard): Promise<boolean> {
     const apiKey = await this.getApiKey(key);
     return (
       this.commonService.checkValue(apiKey.access_level, access) && 
