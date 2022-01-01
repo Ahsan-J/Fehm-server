@@ -1,6 +1,6 @@
 export enum GenreType {
-    Fiction = 1,
-    NonFiction = 2
+    Fiction = "Fiction",
+    NonFiction = "NonFiction"  
 }
 
 export enum FictionGenre {

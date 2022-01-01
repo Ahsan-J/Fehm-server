@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Inject, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { PaginationMeta, PaginationQuery } from 'src/helper-modules/common/common.dto';
 import { CommonService } from 'src/helper-modules/common/common.service';
-import { AuthUser } from '../auth/auth.decorator';
 import { AuthGuard, UseRoles } from '../auth/auth.guard';
 import { ChangeRoleBody } from './user.dto';
 import { User } from './user.entity';
@@ -21,8 +21,19 @@ export class UserController {
 
   @Get('/all')
   @UseRoles(UserRole.SuperAdmin, UserRole.Admin)
-  getUsers(): Promise<Array<User>> {
-    return this.userService.getUsers();
+  async getUsers(@Query() query: PaginationQuery): Promise<Array<User> | { meta: PaginationMeta }> {
+    const page = parseInt(query.page);
+    const pageSize = parseInt(query.pageSize || '10');
+
+    const [data, meta] = await this.userService.getUsers({
+      skip: (page - 1) * pageSize,
+      take: page * pageSize
+    });
+
+    return {
+      ...data,
+      meta
+    }
   }
 
   @Get('/:id')

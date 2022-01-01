@@ -2,13 +2,14 @@ import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundEx
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createHmac } from 'crypto';
-import { Repository } from 'typeorm';
+import { FindManyOptions, Repository } from 'typeorm';
 import { RegisterBody } from '../auth/auth.dto';
 import { User } from './user.entity';
 import moment from 'moment';
 import { nanoid } from 'nanoid';
 import { UserStatus } from './user.enum';
 import { CommonService } from 'src/helper-modules/common/common.service';
+import { PaginationMeta } from 'src/helper-modules/common/common.dto';
 
 @Injectable()
 export class UsersService {
@@ -99,7 +100,11 @@ export class UsersService {
     return user;
   }
 
-  async getUsers(): Promise<Array<User>> {
-    return await this.usersRepository.find({relations:['genre']});
+  async getUsers(options: FindManyOptions<User>): Promise<[User[], PaginationMeta]> {
+    const [result, count] = await this.usersRepository.findAndCount(options);
+    
+    const meta = this.commonService.generateMeta(count, options.skip, options.take);
+    
+    return [result, meta]
   }
 }

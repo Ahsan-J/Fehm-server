@@ -11,6 +11,7 @@ import { Response, Request } from "express";
 import { TokenService } from 'src/helper-modules/token/token.service';
 import { UseAccess } from './auth.guard';
 import { APIAccessLevel } from '../apikey/api.enum';
+
 @ApiTags('Auth')
 @Controller('auth')
 @UseAccess(APIAccessLevel.Standard)
