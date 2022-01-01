@@ -1,5 +1,5 @@
 import { BaseModel } from "../../helper/model";
-import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { User } from "../user/user.entity";
 
 @Entity()
@@ -14,8 +14,8 @@ export class API extends BaseModel {
   @Column()
   app_id: string;
 
-  @OneToOne(() => User)
   @JoinColumn()
+  @ManyToOne(() => User, user => user.api)
   created_by: User;
 
   @Column()

@@ -4,6 +4,7 @@ import { Exclude } from "class-transformer";
 import { MemberShip, UserRole } from "./user.enum";
 import { Genre } from "../genre/genre.entity";
 import { Audio } from "../audio/audio.entity";
+import { API } from "../apikey/api.entity";
 
 @Entity()
 export class User extends BaseModel {
@@ -40,4 +41,7 @@ export class User extends BaseModel {
     @OneToMany(() => Audio, audio => audio.narrator)
     @JoinColumn()
     audio_list: Audio[];
+
+    @OneToMany(() => API, api => api.created_by)
+    api: API[];
 }
