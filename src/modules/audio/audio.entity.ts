@@ -28,4 +28,7 @@ export class Audio extends BaseModel {
 
     @OneToMany(() => Review, review => review.audio)
     comments: Review[];
+
+    @Column({nullable: true})
+    remark: string;
 }

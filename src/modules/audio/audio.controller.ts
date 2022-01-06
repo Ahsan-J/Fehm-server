@@ -5,12 +5,14 @@ import { extname, join } from 'path';
 import { Response, Request } from "express";
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { AudioBookUpload } from './audio.dto';
+import { AudioApprove, AudioBlock, AudioBookUpload } from './audio.dto';
 import { AudioService } from './audio.service';
 import { Audio } from './audio.entity';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { AuthGuard, UseAccess } from '../auth/auth.guard';
+import { AuthGuard, UseAccess, UseRoles } from '../auth/auth.guard';
 import { APIAccessLevel } from '../apikey/api.enum';
+import { AudioStatus } from './audio.enum';
+import { UserRole } from '../user/user.enum';
 
 const storage = diskStorage({
     destination: './uploads',
@@ -24,6 +26,7 @@ const storage = diskStorage({
 @ApiBearerAuth()
 @Controller('audio')
 @UseAccess(APIAccessLevel.Standard)
+@UseRoles(UserRole.User)
 @UseGuards(AuthGuard)
 export class AudioController {
 
@@ -31,8 +34,21 @@ export class AudioController {
 
     @Post('upload')
     @UseInterceptors(FileInterceptor('book', { storage }))
+    @UseRoles(UserRole.Narrator, UserRole.Admin, UserRole.SuperAdmin)
     uploadBook(@Body() audioUpload: AudioBookUpload, @UploadedFile() file: Express.Multer.File): Promise<Audio> {
         return this.audioService.createBookAudio(audioUpload, file);
+    }
+
+    @Post('approve')
+    @UseRoles(UserRole.Admin)
+    approvedUploadedAudio(@Body() body: AudioApprove): Promise<Audio> {
+        return this.audioService.changeAudioStatus(body.audio_id, AudioStatus.Active);
+    }
+
+    @Post('block')
+    @UseRoles(UserRole.Admin)
+    blockUploadedAudio(@Body() body: AudioBlock): Promise<Audio> {
+        return this.audioService.changeAudioStatus(body.audio_id, AudioStatus.Blocked, body.remark);
     }
 
     @Get('stream/:filename')
