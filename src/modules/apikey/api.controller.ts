@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { AuthUser } from "../auth/auth.decorator";
 import { UseRoles } from "../auth/auth.guard";
 import { User } from "../user/user.entity";
@@ -10,6 +10,7 @@ import { ApiService } from './api.service';
 
 @ApiTags('Access Point')
 @Controller('accesspoint')
+@ApiBearerAuth('AccessToken')
 @UseRoles(UserRole.SuperAdmin)
 export class ApiController {
     constructor(

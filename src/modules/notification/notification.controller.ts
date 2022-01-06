@@ -1,5 +1,5 @@
 import { Controller, Get, Headers, UseGuards } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { APIAccessLevel } from '../apikey/api.enum';
 import { AuthUser } from '../auth/auth.decorator';
@@ -8,6 +8,8 @@ import { User } from '../user/user.entity';
 
 @ApiTags("Notification")
 @Controller('notification')
+@ApiSecurity("ApiKeyAuth")
+@ApiBearerAuth('AccessToken')
 @UseAccess(APIAccessLevel.Standard)
 @UseGuards(AuthGuard)
 export class NotificationController {

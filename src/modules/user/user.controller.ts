@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Inject, Param, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { PaginationMeta, PaginationQuery } from 'src/helper-modules/common/common.dto';
 import { CommonService } from 'src/helper-modules/common/common.service';
 import { AuthGuard, UseRoles } from '../auth/auth.guard';
@@ -9,7 +9,8 @@ import { UserRole } from './user.enum';
 import { UsersService } from './user.service';
 
 @ApiTags('User')
-@ApiBearerAuth()
+@ApiSecurity("ApiKeyAuth")
+@ApiBearerAuth('AccessToken')
 @UseGuards(AuthGuard)
 @Controller("user")
 export class UserController {
