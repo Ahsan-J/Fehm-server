@@ -9,12 +9,15 @@ import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    cors: true,
+  });
 
   app.useStaticAssets(join(process.cwd(), 'public'));
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
   app.useGlobalInterceptors(new TransformInterceptor());
+  // app.enableCors();
 
   const configService = app.get(ConfigService);
   app.use(
