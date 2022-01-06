@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindManyOptions, Repository } from 'typeorm';
 import { CreateAccessKey } from './api.dto';
 import { API } from './api.entity';
 import { nanoid } from "nanoid";
@@ -9,6 +9,7 @@ import moment from 'moment';
 import { User } from '../user/user.entity';
 import { APIAccessLevel, APIStatus, API_EXPIRY } from './api.enum';
 import { CommonService } from 'src/helper-modules/common/common.service';
+import { PaginationMeta } from 'src/helper-modules/common/common.dto';
 
 @Injectable()
 export class ApiService {
@@ -35,8 +36,10 @@ export class ApiService {
     });
   }
   
-  async getAllApiKeys(): Promise<Array<API>> {
-    return await this.apiRepository.find();
+  async getAllApiKeys(options: FindManyOptions<API>): Promise<[API[], PaginationMeta]> {
+    const [result, count] = await this.apiRepository.findAndCount(options);
+    const meta = this.commonService.generateMeta(count, options.skip, options.take);
+    return [result, meta]
   }
 
   async getApiKey(key: API['key']): Promise<API> {

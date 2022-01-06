@@ -1,5 +1,6 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
+import { PaginationMeta, PaginationQuery } from "src/helper-modules/common/common.dto";
 import { AuthUser } from "../auth/auth.decorator";
 import { UseRoles } from "../auth/auth.guard";
 import { User } from "../user/user.entity";
@@ -22,8 +23,19 @@ export class ApiController {
     }
 
     @Get()
-    async getAllApiKeys(): Promise<Array<API>> {
-        return await this.apiService.getAllApiKeys()
+    async getAllApiKeys(@Query() query: PaginationQuery): Promise<Array<API> | { meta: PaginationMeta }> {
+        const page = parseInt(query.page) || 1
+        const pageSize = parseInt(query.pageSize) || 10;
+
+        const [data, meta] = await this.apiService.getAllApiKeys({
+            skip: (page - 1) * pageSize,
+            take: page * pageSize
+        });
+
+        return {
+            ...data,
+            meta
+        }
     }
 
     @Get(':id')
