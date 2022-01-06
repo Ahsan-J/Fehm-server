@@ -8,7 +8,7 @@ import { diskStorage } from 'multer';
 import { AudioApprove, AudioBlock, AudioBookUpload } from './audio.dto';
 import { AudioService } from './audio.service';
 import { Audio } from './audio.entity';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { AuthGuard, UseAccess, UseRoles } from '../auth/auth.guard';
 import { APIAccessLevel } from '../apikey/api.enum';
 import { AudioStatus } from './audio.enum';
@@ -23,7 +23,8 @@ const storage = diskStorage({
 });
 
 @ApiTags('Audio')
-@ApiBearerAuth()
+@ApiBearerAuth('AccessToken')
+@ApiSecurity("ApiKeyAuth")
 @Controller('audio')
 @UseAccess(APIAccessLevel.Standard)
 @UseRoles(UserRole.User)

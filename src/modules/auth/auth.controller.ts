@@ -3,7 +3,7 @@ import { User } from '../user/user.entity';
 import { UsersService } from '../user/user.service';
 import { ForgotPasswordBody, LoginBody, RegisterBody, ResetPasswordBody, ActivateUserBody } from './auth.dto';
 import { AuthService } from './auth.service';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { MailService } from '../../helper-modules/mail/mail.service';
 import { UserStatus } from '../user/user.enum';
 import { CommonService } from 'src/helper-modules/common/common.service';
@@ -14,6 +14,7 @@ import { APIAccessLevel } from '../apikey/api.enum';
 
 @ApiTags('Auth')
 @Controller('auth')
+@ApiSecurity("ApiKeyAuth")
 @UseAccess(APIAccessLevel.Standard)
 export class AuthController {
 

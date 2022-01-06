@@ -20,6 +20,19 @@ async function bootstrap() {
   // app.enableCors();
 
   const configService = app.get(ConfigService);
+  // const user = await app.get(UsersService).createUser({
+  //   email: 'xcalaiberz@gmail.com',
+  //   last_name: "Ahmed",
+  //   first_name: "Ahsan",
+  //   password: "abc123",
+  //   confirm_password: "abc123",
+  //   contact_number: "923331231231",
+  // })
+  // app.get(ApiService).createApiKey({
+  //   description: "Fehm-Public",
+  //   access_level: APIAccessLevel.Standard,
+  //   name: "Fehm-Public"
+  // }, user)
   app.use(
     session({
       secret: configService.get("APP_ID"),
@@ -32,10 +45,11 @@ async function bootstrap() {
     .setTitle('Fehm API')
     .setDescription('Fehm API doc ')
     .setVersion('1.0')
-    .addBearerAuth({ type: 'http', scheme: 'bearer' }, 'access-token')
+    .addBearerAuth({ type: 'http', scheme: 'bearer' }, 'AccessToken')
+    .addApiKey({ type: 'apiKey', name: 'x-api-key', in: 'header',  }, 'ApiKeyAuth')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
-  await app.listen(3000);
+  await app.listen(configService.get("PORT") || 3000);
 }
 bootstrap();
