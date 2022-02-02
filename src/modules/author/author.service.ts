@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Injectable } from "@nestjs/common";
+import { BadRequestException, ConflictException, ForbiddenException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { nanoid } from "nanoid";
 import { Repository } from "typeorm";
@@ -32,7 +32,7 @@ export class AuthorService {
     async createAuthor(createAuthor: CreateAuthor): Promise<Author> {
 
         if(await this.authorRepository.findOne({where:{name: createAuthor.name}})){
-            throw new ForbiddenException("Author already exist");
+            throw new ConflictException("Author already exist");
         }
         
         return await this.authorRepository.save({

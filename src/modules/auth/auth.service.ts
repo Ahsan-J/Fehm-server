@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { nanoid } from "nanoid";
 import { CacheService } from "../../helper-modules/cache/cache.service";
@@ -52,7 +52,7 @@ export class AuthService {
         }
 
         if(!moment(time).isBetween(moment().subtract(1, 'day'), moment())) {
-            throw new BadRequestException("Reset token expired its duration")
+            throw new UnauthorizedException("Reset token expired its duration")
         }
 
         return true;

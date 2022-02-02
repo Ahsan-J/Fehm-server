@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createHmac } from 'crypto';
@@ -38,7 +38,7 @@ export class UsersService {
   async createUser(registerBody: RegisterBody): Promise<User> {
     
     if (registerBody.password !== registerBody.confirm_password) {
-      throw new ForbiddenException("Password mismatch")
+      throw new NotAcceptableException("Password mismatch")
     }
 
     let savedUser: User;
@@ -50,7 +50,7 @@ export class UsersService {
     }
     
     if(savedUser) {
-      throw new ForbiddenException("User Already registered with email")
+      throw new ConflictException("User Already registered with email")
     }
 
     if(registerBody.confirm_password !== registerBody.password) {

@@ -1,10 +1,11 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestMiddleware, NestModule } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { API } from './api.entity';
 import { ConfigModule } from '@nestjs/config';
 import { ApiController } from './api.controller';
 import { ApiService } from './api.service';
 import { CommonModule } from 'src/helper-modules/common/common.module';
+import { ApiMiddleware } from './api.middleware';
 
 @Module({
   imports: [
@@ -16,4 +17,9 @@ import { CommonModule } from 'src/helper-modules/common/common.module';
   providers: [ApiService],
   exports: [ApiService]
 })
-export class ApiModule {}
+export class ApiModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(ApiMiddleware).forRoutes("*")
+  }
+  
+}

@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NestMiddleware } from "@nestjs/common";
+import { ForbiddenException, Injectable, NestMiddleware, UnauthorizedException } from "@nestjs/common";
 import { TokenService } from "./helper-modules/token/token.service";
 import { UsersService } from "./modules/user/user.service";
 
@@ -19,7 +19,7 @@ export class InjectSessionUser implements NestMiddleware{
                 throw new ForbiddenException("Token mismatch with user") ;
             }
         } catch (e) {
-            throw new ForbiddenException("Token mismatch with user")
+            throw new UnauthorizedException("Token mismatch with user")
         }
 
         next();

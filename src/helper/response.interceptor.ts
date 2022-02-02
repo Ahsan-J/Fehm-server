@@ -16,7 +16,10 @@ export class TransformInterceptor<T> implements NestInterceptor<T, AppResponse<T
     const res = ctx.getResponse<Response>()
     return next.handle()?.pipe(map(data => {
       const { meta } = data;
-      if(meta) delete data['meta']; 
+      
+      if(meta) delete data['meta'];
+      if(data[0]) data = Object.values(data); // converting object to array
+
       return {
         data,
         meta,
