@@ -54,35 +54,31 @@ export class TokenService {
             throw new UnauthorizedException("Authorization token is missing");
         }
         
-        const code = headers.authorization.replace('Bearer ','');
-        
         const parser = new UAParser();
         parser.setUA(headers['user-agent']);
         
-        const [,
+        const {
             appId,
             userId,
-            /* userRole */,
             apiKey,
-            /* apiAccess */,
             deviceType,
             browser,
-            time,
-        ] = Buffer.from(code, 'base64').toString('ascii').split("|");
+            tokenTime,
+        } = this.getTokenData(headers);
         
-        if (await this.cacheService.get(`${userId}_${browser}_${deviceType}`) !== code) {
-            throw new UnauthorizedException("Invalid Authorization token")
-        }
+        // if (await this.cacheService.get(`${userId}_${browser}_${deviceType}`) !== code) {
+        //     throw new UnauthorizedException("Invalid Authorization token")
+        // }
         
         if(appId !== this.configService.get("APP_ID")) {
-            throw new UnauthorizedException("App id is invalid")
+            throw new ForbiddenException("App id is invalid")
         }
         
         if(apiKey !== headers['x-api-key']) {
             throw new ForbiddenException("Api key is invalid")
         }
         
-        if(!moment(time).isBetween(moment().subtract(1, 'day'), moment())) {
+        if(!moment(tokenTime).isBetween(moment().subtract(1, 'day'), moment())) {
             throw new UnauthorizedException("Reset token expired its duration")
         }
 
@@ -98,18 +94,7 @@ export class TokenService {
             throw new UnauthorizedException("Authorization token is missing");
         }
         
-        const code = headers.authorization.replace('Bearer ','');
-        
-        const [,
-            /* appId */,
-            userId,
-            /* userRole */,
-            /* apiKey */,
-            /* apiAccess */,
-            deviceType,
-            browser,
-            /* time */,
-        ] = Buffer.from(code, 'base64').toString('ascii').split("|");
+        const { userId, deviceType, browser} = this.getTokenData(headers);
         
         return await this.cacheService.del(`${userId}_${browser}_${deviceType}`)
     }
