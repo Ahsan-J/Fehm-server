@@ -7,7 +7,7 @@ import { RegisterBody } from '../auth/auth.dto';
 import { User } from './user.entity';
 import moment from 'moment';
 import { nanoid } from 'nanoid';
-import { UserStatus } from './user.enum';
+import { UserRole, UserStatus } from './user.enum';
 import { CommonService } from 'src/helper-modules/common/common.service';
 import { PaginationMeta } from 'src/helper-modules/common/common.dto';
 
@@ -68,6 +68,7 @@ export class UsersService {
       updated_at: moment().toISOString(),
       deleted_at: null,
       status: UserStatus.InActive,
+      role: registerBody.role || UserRole.User,
     });
     
     return user;

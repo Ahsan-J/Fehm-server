@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { PaginationMeta, PaginationQuery } from 'src/helper-modules/common/common.dto';
 import { CommonService } from 'src/helper-modules/common/common.service';
 import { APIAccessLevel } from '../apikey/api.enum';
+import { RegisterBody } from '../auth/auth.dto';
 import { AuthGuard, UseAccess, UseRoles } from '../auth/auth.guard';
 import { ChangeRoleBody } from './user.dto';
 import { User } from './user.entity';
@@ -51,5 +52,11 @@ export class UserController {
     const user = await this.userService.getUserByEmail(body.email);
     user.role = this.commonService.setValue(user.role, body.role);
     return await this.userService.updateUser(user);
+  }
+
+  @Post('create')
+  @UseRoles(UserRole.Admin, UserRole.SuperAdmin)
+  async createUser(@Body() body: RegisterBody): Promise<User> {
+    return await this.userService.createUser(body);
   }
 }
