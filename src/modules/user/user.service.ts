@@ -2,7 +2,7 @@ import { BadRequestException, ConflictException, Inject, Injectable, NotAcceptab
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createHmac } from 'crypto';
-import { FindManyOptions, Repository } from 'typeorm';
+import { DeleteResult, FindManyOptions, Repository } from 'typeorm';
 import { RegisterBody } from '../auth/auth.dto';
 import { User } from './user.entity';
 import moment from 'moment';
@@ -107,5 +107,9 @@ export class UsersService {
     const meta = this.commonService.generateMeta(count, options.skip, options.take);
     
     return [result, meta]
+  }
+
+  async destroy(user: User): Promise<DeleteResult> {
+    return await this.usersRepository.delete(user);
   }
 }

@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsString } from "class-validator";
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
 import { User } from "../user/user.entity";
 import { UserRole } from "./user.enum";
 
@@ -12,4 +12,24 @@ export class ChangeRoleBody {
     @IsNotEmpty()
     @IsEnum(UserRole)
     role: User['role'];
+}
+
+export class UpdateUser {
+    @IsOptional()
+    first_name: User['first_name'];
+
+    @IsOptional()
+    last_name: User['last_name'];
+
+    @IsOptional()
+    contact_number: User['contact_number'];
+
+    @IsOptional()
+    membership_status: User['membership_status']
+
+    @IsOptional()
+    role: User['role'];
+
+    @IsOptional()
+    status: User['status'];
 }
