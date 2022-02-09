@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import moment from 'moment';
 import { PaginationMeta, PaginationQuery } from 'src/helper-modules/common/common.dto';
 import { CommonService } from 'src/helper-modules/common/common.service';
+import { Sieve } from 'src/helper/sieve.pipe';
 import { APIAccessLevel } from '../apikey/api.enum';
 import { RegisterBody } from '../auth/auth.dto';
 import { AuthGuard, UseAccess, UseRoles } from '../auth/auth.guard';
@@ -26,13 +27,15 @@ export class UserController {
 
   @Get('/all')
   @UseRoles(UserRole.SuperAdmin, UserRole.Admin)
-  async getUsers(@Query() query: PaginationQuery): Promise<Array<User> | { meta: PaginationMeta }> {
+  async getUsers(@Query() query: PaginationQuery, @Query('filters', Sieve) filters,  @Query('sorts', Sieve) sorts): Promise<Array<User> | { meta: PaginationMeta }> {
+
     const page = parseInt(query.page);
     const pageSize = parseInt(query.pageSize || '10');
-
     const [data, meta] = await this.userService.getUsers({
       skip: (page - 1) * pageSize,
       take: page * pageSize,
+      where: filters,
+      order: sorts,
     });
 
     return {
@@ -86,6 +89,15 @@ export class UserController {
     }
     user.deleted_at = moment().toISOString();
     user.status = UserStatus.Blocked;
-    return this.userService.updateUser(user); 
+    return await this.userService.updateUser(user); 
+  }
+
+  @Put('/:id/restore')
+  @UseRoles(UserRole.Admin, UserRole.SuperAdmin)
+  async restoreUser(@Param('id') id: string): Promise<User> {
+    const user = await this.userService.getUser(id);
+    user.deleted_at = null;
+    user.status = UserStatus.InActive;
+    return await this.userService.updateUser(user); 
   }
 }
