@@ -2,7 +2,8 @@ import { Body, Controller, Get, Inject, Param, Post, Query, UseGuards } from '@n
 import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { PaginationMeta, PaginationQuery } from 'src/helper-modules/common/common.dto';
 import { CommonService } from 'src/helper-modules/common/common.service';
-import { AuthGuard, UseRoles } from '../auth/auth.guard';
+import { APIAccessLevel } from '../apikey/api.enum';
+import { AuthGuard, UseAccess, UseRoles } from '../auth/auth.guard';
 import { ChangeRoleBody } from './user.dto';
 import { User } from './user.entity';
 import { UserRole } from './user.enum';
@@ -12,6 +13,7 @@ import { UsersService } from './user.service';
 @ApiSecurity("ApiKeyAuth")
 @ApiBearerAuth('AccessToken')
 @UseGuards(AuthGuard)
+@UseAccess(APIAccessLevel.Standard)
 @Controller("user")
 export class UserController {
   constructor(
