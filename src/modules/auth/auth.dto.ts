@@ -44,6 +44,10 @@ export class RegisterBody {
     @IsNotEmpty()
     @IsString()
     contact_number: User['contact_number'];
+
+    @IsOptional()
+    @IsNotEmpty()
+    role?: User['role']
 }
 
 export class ResetPasswordBody {

@@ -1,12 +1,9 @@
-import { ForbiddenException, Inject, Injectable, NestMiddleware } from "@nestjs/common";
-import { TokenService } from "src/helper-modules/token/token.service";
+import { ForbiddenException, Injectable, NestMiddleware } from "@nestjs/common";
 import { ApiService } from "../apikey/api.service";
 
 @Injectable()
-export class AuthAPIKeyMiddleware implements NestMiddleware {
+export class ApiMiddleware implements NestMiddleware {
     constructor(
-        @Inject(TokenService)
-        private tokenService: TokenService,
         private apiService: ApiService,
         ) {}
         

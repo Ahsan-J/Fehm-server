@@ -8,6 +8,7 @@ import { Genre } from "./genre.entity";
 import { GenreService } from "./genre.service";
 
 @ApiSecurity("ApiKeyAuth")
+@UseAccess(APIAccessLevel.Standard)
 @Controller('genre')
 @UseAccess(APIAccessLevel.Standard)
 @UseRoles(UserRole.User)

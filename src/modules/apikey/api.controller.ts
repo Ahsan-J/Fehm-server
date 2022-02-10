@@ -13,6 +13,7 @@ import { ApiService } from './api.service';
 @ApiTags('Access Point')
 @Controller('accesspoint')
 @ApiBearerAuth('AccessToken')
+@UseAccess(APIAccessLevel.Admin)
 @UseRoles(UserRole.SuperAdmin)
 @UseAccess(APIAccessLevel.Admin)
 export class ApiController {

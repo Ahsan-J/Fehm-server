@@ -24,16 +24,11 @@ export class AuthGuard implements CanActivate {
         const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>('roles', [context.getHandler(), context.getClass()]) || [];
         const apiAccess = this.reflector.getAllAndOverride<APIAccessLevel[]>('access', [context.getHandler(), context.getClass()]) || [];
         const request = context.switchToHttp().getRequest<Request>();
-        try {
-            if(await this.tokenService.validateAccessToken(request.headers)) {
-                const auth = this.tokenService.getTokenData(request.headers);
-                
-                if(apiAccess.some(access => this.commonService.checkValue(auth.apiAccess, access))) return false;
-                if(requiredRoles.some(role => this.commonService.checkValue(auth.userRole, role))) return false;
-                return true; 
-            }
-        } catch(e) {
-            console.log(e);
+        if(await this.tokenService.validateAccessToken(request.headers)) {
+            const auth = this.tokenService.getTokenData(request.headers);
+            if(!apiAccess.some(access => this.commonService.checkValue(auth.apiAccess, access))) return false;
+            if(!requiredRoles.some(role => this.commonService.checkValue(auth.userRole, role))) return false;
+            return true; 
         }
         
         return false

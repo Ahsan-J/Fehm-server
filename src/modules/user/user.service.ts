@@ -1,13 +1,13 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createHmac } from 'crypto';
-import { FindManyOptions, Repository } from 'typeorm';
+import { DeleteResult, FindManyOptions, Repository } from 'typeorm';
 import { RegisterBody } from '../auth/auth.dto';
 import { User } from './user.entity';
 import moment from 'moment';
 import { nanoid } from 'nanoid';
-import { UserStatus } from './user.enum';
+import { UserRole, UserStatus } from './user.enum';
 import { CommonService } from 'src/helper-modules/common/common.service';
 import { PaginationMeta } from 'src/helper-modules/common/common.dto';
 
@@ -38,7 +38,7 @@ export class UsersService {
   async createUser(registerBody: RegisterBody): Promise<User> {
     
     if (registerBody.password !== registerBody.confirm_password) {
-      throw new ForbiddenException("Password mismatch")
+      throw new NotAcceptableException("Password mismatch")
     }
 
     let savedUser: User;
@@ -50,7 +50,7 @@ export class UsersService {
     }
     
     if(savedUser) {
-      throw new ForbiddenException("User Already registered with email")
+      throw new ConflictException("User Already registered with email")
     }
 
     if(registerBody.confirm_password !== registerBody.password) {
@@ -68,6 +68,7 @@ export class UsersService {
       updated_at: moment().toISOString(),
       deleted_at: null,
       status: UserStatus.InActive,
+      role: registerBody.role || UserRole.User,
     });
     
     return user;
@@ -106,5 +107,9 @@ export class UsersService {
     const meta = this.commonService.generateMeta(count, options.skip, options.take);
     
     return [result, meta]
+  }
+
+  async destroy(user: User): Promise<DeleteResult> {
+    return await this.usersRepository.delete(user);
   }
 }
