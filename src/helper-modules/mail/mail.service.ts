@@ -12,7 +12,7 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
     onModuleInit() {
         this.transporter = nodemailer.createTransport({
             host: this.configService.get("SMTP_HOST"),
-            port: 587,
+            port: parseInt(this.configService.get("SMTP_PORT")),
             secure: false,
             auth: {
                 user: this.configService.get("SMTP_USER"), // generated ethereal user
