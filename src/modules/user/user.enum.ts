@@ -5,9 +5,8 @@ export enum UserStatus {
 }
 
 export enum MemberShip {
-    InActive = 1,
-    Active = 2,
-    Pro = 4,
+    Standard = 1,
+    Prime = 2,
 }
 
 export enum UserRole {
