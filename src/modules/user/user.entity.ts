@@ -28,10 +28,13 @@ export class User extends BaseModel {
     @Exclude({ toPlainOnly: true })
     password: string;
 
+    @Column()
+    profile_url: string;
+
     @Column({default: UserRole.User})
     role: UserRole;
 
-    @Column({default: MemberShip.InActive})
+    @Column({default: MemberShip.Standard})
     membership_status: MemberShip;
 
     @ManyToMany(() => Genre)

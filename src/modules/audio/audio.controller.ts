@@ -1,10 +1,9 @@
 import { BadRequestException, Body, Controller, Get, Headers, Param, Post, Res, UploadedFile, UseGuards, UseInterceptors,  } from '@nestjs/common';
 import { createReadStream, stat } from 'fs';
 import { CreateReadStreamOptions } from 'fs/promises';
-import { extname, join } from 'path';
+import { join } from 'path';
 import { Response, Request } from "express";
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
 import { AudioApprove, AudioBlock, AudioBookUpload } from './audio.dto';
 import { AudioService } from './audio.service';
 import { Audio } from './audio.entity';
@@ -13,14 +12,7 @@ import { AuthGuard, UseAccess, UseRoles } from '../auth/auth.guard';
 import { APIAccessLevel } from '../apikey/api.enum';
 import { AudioStatus } from './audio.enum';
 import { UserRole } from '../user/user.enum';
-
-const storage = diskStorage({
-    destination: './uploads',
-    filename: (req, file, cb) => {
-        const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('')
-        return cb(null, `${randomName}${extname(file.originalname)}`)
-    }
-});
+import { getStorage } from 'src/helper/utility';
 
 @ApiTags('Audio')
 @ApiBearerAuth('AccessToken')
@@ -34,7 +26,7 @@ export class AudioController {
     constructor(private audioService: AudioService) {}
 
     @Post('upload')
-    @UseInterceptors(FileInterceptor('book', { storage }))
+    @UseInterceptors(FileInterceptor('book', { storage: getStorage('audio') }))
     @UseRoles(UserRole.Narrator, UserRole.Admin, UserRole.SuperAdmin)
     uploadBook(@Body() audioUpload: AudioBookUpload, @UploadedFile() file: Express.Multer.File): Promise<Audio> {
         return this.audioService.createBookAudio(audioUpload, file);

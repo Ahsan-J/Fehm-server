@@ -35,7 +35,7 @@ export class UsersService {
     return user;
   }
 
-  async createUser(registerBody: RegisterBody): Promise<User> {
+  async createUser(registerBody: RegisterBody, profile?: Express.Multer.File ): Promise<User> {
     
     if (registerBody.password !== registerBody.confirm_password) {
       throw new NotAcceptableException("Password mismatch")
@@ -69,6 +69,7 @@ export class UsersService {
       deleted_at: null,
       status: UserStatus.InActive,
       role: registerBody.role || UserRole.User,
+      profile_url: `/profile/${profile.filename}`
     });
     
     return user;
