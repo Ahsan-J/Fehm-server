@@ -1,4 +1,5 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsArray, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { Genre } from "../genre/genre.entity";
 import { User } from "../user/user.entity";
 import { UserRole } from "./user.enum";
 
@@ -32,4 +33,9 @@ export class UpdateUser {
 
     @IsOptional()
     status: User['status'];
+}
+
+export class AddGenre {
+    @IsArray()
+    genre: Array<Genre['id']>
 }

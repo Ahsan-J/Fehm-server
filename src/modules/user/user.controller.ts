@@ -7,12 +7,13 @@ import { APIAccessLevel } from '../apikey/api.enum';
 import { AuthGuard, UseAccess, UseRoles } from '../auth/auth.guard';
 import { Sieve } from 'src/helper/sieve.pipe';
 import { RegisterBody } from '../auth/auth.dto';
-import { ChangeRoleBody, UpdateUser } from './user.dto';
+import { AddGenre, ChangeRoleBody, UpdateUser } from './user.dto';
 import { User } from './user.entity';
 import { UserRole, UserStatus } from './user.enum';
 import { UsersService } from './user.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { getStorage } from 'src/helper/utility';
+import { GenreService } from '../genre/genre.service';
 
 @ApiTags('User')
 @ApiSecurity("ApiKeyAuth")
@@ -26,6 +27,7 @@ export class UserController {
     @Inject(CommonService)
     private commonService: CommonService,
     private userService: UsersService,
+    private genreService: GenreService,
   ) { }
 
   @Get('/all')
@@ -48,9 +50,26 @@ export class UserController {
   }
 
   @Get('/:id')
-  @UseRoles(UserRole.SuperAdmin, UserRole.Admin, UserRole.User)
   async getUser(@Param('id') id: string): Promise<User> {
     return this.userService.getUser(id);
+  }
+
+  @Post('/:id/genre')
+  async addGenre(@Param('id') id: string, @Body() body: AddGenre): Promise<User> {
+    const user = await this.userService.getUser(id);
+    
+    for(const genreId of body.genre) {
+      user.genre.push(await this.genreService.getGenre(genreId))
+    }
+
+    return await this.userService.updateUser(user);
+  }
+
+  @Delete('/:id/genre')
+  async removeGenre(@Param('id') id: string, @Body() body: AddGenre): Promise<User> {
+    const user = await this.userService.getUser(id);
+    user.genre = user.genre.filter((v) => !body.genre.includes(v.id))
+    return await this.userService.updateUser(user);
   }
 
   @Put('change-role')
