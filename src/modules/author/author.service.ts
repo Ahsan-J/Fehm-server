@@ -1,8 +1,7 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { nanoid } from "nanoid";
 import { Repository } from "typeorm";
-import { Genre } from "../genre/genre.entity";
 import { GenreService } from "../genre/genre.service";
 import { CreateAuthor } from "./author.dto";
 import { Author } from "./author.entity";
@@ -41,9 +40,5 @@ export class AuthorService {
             url: createAuthor.url,
             id: nanoid(),
         })
-    }
-
-    async addGenre(author: Author, genre: Genre['name']) {
-        return await this.genreService.addGenre([], author);
     }
 }

@@ -40,8 +40,8 @@ export class BookService {
             status: 1,
         });
 
-        await this.genreService.addGenre(createBook.genre, book);
-        await this.genreService.addGenre(createBook.genre, author);
+        // await this.genreService.addGenre(createBook.genre, book);
+        // await this.genreService.addGenre(createBook.genre, author);
 
         return book;
     }
@@ -61,8 +61,4 @@ export class BookService {
 
         return [result, meta]
     }
-
-    // async addGenre(genre: UserGenre['name']): Promise<Book> {
-
-    // }
 }
