@@ -9,7 +9,6 @@ export class CreateAuthor {
     name: Author['name'];
 
     @IsString()
-    @IsAlphanumeric()
     bio: Author['bio'];
 
     @IsString()

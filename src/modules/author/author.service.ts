@@ -5,6 +5,7 @@ import { Repository } from "typeorm";
 import { GenreService } from "../genre/genre.service";
 import { CreateAuthor } from "./author.dto";
 import { Author } from "./author.entity";
+import moment from 'moment';
 
 @Injectable()
 export class AuthorService {
@@ -39,6 +40,8 @@ export class AuthorService {
             bio: createAuthor.bio,
             url: createAuthor.url,
             id: nanoid(),
+            created_at: moment().toISOString(),
+            updated_at: moment().toISOString(),
         })
     }
 }

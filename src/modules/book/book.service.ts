@@ -1,5 +1,6 @@
 import { BadRequestException, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import moment from "moment";
 import { nanoid } from "nanoid";
 import { PaginationMeta } from "src/helper-modules/common/common.dto";
 import { CommonService } from "src/helper-modules/common/common.service";
@@ -26,18 +27,20 @@ export class BookService {
 
         const isbnBook = await this.bookRepository.findOne({ where: { isbn: createBook.isbn } })
 
-        if (isbnBook) {
+        if (isbnBook && createBook.isbn) {
             throw new BadRequestException("ISBN  already exist");
         }
 
         const book = await this.bookRepository.save({
             author,
             description: createBook.description,
-            id: nanoid(),
+            id: createBook.id || nanoid(),
             purchase_url: createBook.purchase_url,
             title: createBook.title,
             isbn: createBook.isbn,
             status: 1,
+            created_at: moment().toISOString(),
+            updated_at: moment().toISOString(),
         });
 
         // await this.genreService.addGenre(createBook.genre, book);
@@ -55,7 +58,10 @@ export class BookService {
     }
 
     async getBooks(options: FindManyOptions<Book>): Promise<[Book[],PaginationMeta]> {
-        const [result, count] = await this.bookRepository.findAndCount(options);
+        const [result, count] = await this.bookRepository.findAndCount({
+            relations: ['author'],
+            ...options
+        });
 
         const meta = this.commonService.generateMeta(count, options.skip, options.take);
 

@@ -1,10 +1,11 @@
-import { Body, Controller, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Post, Query, UseGuards } from "@nestjs/common";
 import { AuthorService } from "./author.service";
 import { ApiBearerAuth, ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { CreateAuthor } from "./author.dto";
 import { Author } from "./author.entity";
 import { AuthGuard, UseAccess } from "../auth/auth.guard";
 import { APIAccessLevel } from "../apikey/api.enum";
+import { PaginationQuery } from "src/helper-modules/common/common.dto";
 
 @ApiTags('Author')
 @Controller('author')
@@ -18,5 +19,11 @@ export class AuthorController {
     @Post('create')
     async createAuthor(@Body() createAuthor: CreateAuthor): Promise<Author> {
         return await this.authorService.createAuthor(createAuthor);
+    }
+
+    @Get('all') 
+    async getAuthors(@Query() query: PaginationQuery): Promise<Array<Author>> {
+        
+        return []
     }
 }

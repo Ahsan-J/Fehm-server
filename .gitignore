@@ -33,3 +33,4 @@ lerna-debug.log*
 uploads
 postgres.cmd
 .env
+book_dump
