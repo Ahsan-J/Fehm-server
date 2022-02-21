@@ -7,7 +7,7 @@ import { User } from 'src/modules/user/user.entity';
     origin: "*",
   },
   transports:["websocket", "polling"],
-  namespace: /^\/user-\d+$/,
+  namespace: /^\/user-(.)+$/,
 })
 export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect{
   @WebSocketServer()
@@ -42,6 +42,38 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect{
     });
 
     return { sent, failed };
+  }
+
+  @SubscribeMessage('icecandidate-sent')
+  onIceCandidate(@MessageBody() data: any) {
+    console.log(data)
+    this.server.to(this.connections[data?.user_id]).emit("icecandidate-receive", data.candidate)
+  }
+
+  @SubscribeMessage("call-user")
+  callUser(@MessageBody() data: any) {
+    console.log("Sending call-user to " + this.connections[data?.to], data?.to)
+    this.server.to(this.connections[data?.to]).emit("call-made", {
+      offer: data.offer,
+      from: data.from, // who is calling
+      to: data.to, // who is receiving
+    })
+  }
+
+  @SubscribeMessage("make-answer")
+  makeAnswer(@MessageBody() data: any) {
+    console.log("Sending make-answer to " + this.connections[data?.from], data?.from)
+    this.server.to(this.connections[data?.from]).emit("answer-made", {
+      answer: data.answer,
+      from: data.from, // who is calling
+      to: data.to, // who is receiving
+    })
+  }
+
+  @SubscribeMessage("request-end-call")
+  RequestEndCall(@MessageBody() data: any) {
+    console.log("Sending request-end-call to " + this.connections[data?.to], data?.to)
+    this.server.to(this.connections[data?.to]).emit("end-call", data)
   }
 
   @SubscribeMessage('message')
