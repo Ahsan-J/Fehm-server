@@ -7,6 +7,7 @@ import { UserRole } from "../user/user.enum";
 import { Book } from "./book.entity";
 import { APIAccessLevel } from "../apikey/api.enum";
 import { PaginationMeta, PaginationQuery } from "src/helper-modules/common/common.dto";
+import { Sieve } from "src/helper/sieve.pipe";
 
 @ApiTags('Book')
 @ApiBearerAuth('AccessToken')
@@ -22,14 +23,16 @@ export class BookController {
         return await this.bookService.createBook(createBook);
     }
 
-    @Get('all')
-    async getAllBooks(@Query() query: PaginationQuery): Promise<Array<Book> | { meta: PaginationMeta }> {
+    @Get()
+    async getAllBooks(@Query() query: PaginationQuery, @Query('filters', Sieve) filters, @Query('sorts', Sieve) sorts): Promise<Array<Book> | { meta: PaginationMeta }> {
         const page = parseInt(query.page);
         const pageSize = parseInt(query.pageSize || '10');
 
         const [data, meta] = await this.bookService.getBooks({
             skip: (page - 1) * pageSize,
-            take: page * pageSize
+            take: page * pageSize,
+            where: filters,
+            order: sorts,
         });
 
         return {

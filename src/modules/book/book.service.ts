@@ -23,7 +23,7 @@ export class BookService {
 
     async createBook(createBook: CreateBookBody): Promise<Book> {
 
-        const author = await this.authorService.getAuthor(createBook.author);
+        const author = await this.authorService.getAuthorById(createBook.author);
 
         const isbnBook = await this.bookRepository.findOne({ where: { isbn: createBook.isbn } })
 

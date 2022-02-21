@@ -30,7 +30,7 @@ export class UserController {
     private genreService: GenreService,
   ) { }
 
-  @Get('/all')
+  @Get()
   @UseRoles(UserRole.SuperAdmin, UserRole.Admin)
   async getUsers(@Query() query: PaginationQuery, @Query('filters', Sieve) filters, @Query('sorts', Sieve) sorts): Promise<Array<User> | { meta: PaginationMeta }> {
 
