@@ -45,7 +45,7 @@ export class ApiService {
   async getApiKey(key: API['key']): Promise<API> {
     if (!key) throw new BadRequestException("Invalid Key");
 
-    const apiKey = await this.apiRepository.findOne(key, {relations: ['created_by']})
+    const apiKey = await this.apiRepository.findOne({where:{ key }, relations: ['created_by']})
     
     if (!apiKey) throw new NotFoundException("No API Key found")
     

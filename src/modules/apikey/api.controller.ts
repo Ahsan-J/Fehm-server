@@ -15,7 +15,6 @@ import { ApiService } from './api.service';
 @ApiBearerAuth('AccessToken')
 @UseAccess(APIAccessLevel.Admin)
 @UseRoles(UserRole.SuperAdmin)
-@UseAccess(APIAccessLevel.Admin)
 export class ApiController {
     constructor(
         private apiService: ApiService,

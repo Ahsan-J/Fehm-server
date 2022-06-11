@@ -26,7 +26,7 @@ export class UsersService {
       throw new BadRequestException(`User's "id" is not definded`)
     }
 
-    const user = await this.usersRepository.findOne(id, {relations:['genre']});
+    const user = await this.usersRepository.findOne({where: { id }, relations:['genre']});
 
     if (!user) {
       throw new BadRequestException(`No User found for the id ${id}`)

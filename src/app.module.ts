@@ -98,6 +98,6 @@ export class AppModule implements NestModule {
   //   })
   // }
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(InjectSessionUser).exclude("auth/(.*)", "public/(.*)").forRoutes("*")
+    consumer.apply(InjectSessionUser).exclude("auth/(.*)", "public/(.*)", "audio/stream/(.*)").forRoutes("*")
   }
 }

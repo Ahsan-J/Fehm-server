@@ -19,7 +19,7 @@ export class GenreService {
             throw new BadRequestException("Genre Id is empty");
         }
 
-        const genre = await this.genreRepository.findOne(genreId)
+        const genre = await this.genreRepository.findOne({where: {id: genreId}})
 
         if(!genre) {
             throw new NotFoundException("No Genre found for given id");

@@ -43,7 +43,7 @@ export class AudioService {
 
     async getAudioDetail(id: Audio['id'], options?: FindOneOptions<Audio>) {
         if(!id) throw new BadRequestException("Invalid Audio id");
-        const audio = await this.audioRepository.findOne(id, options);
+        const audio = await this.audioRepository.findOne(Object.assign(options, {where:{id}}));
         if (!audio) throw new BadRequestException("No Audio book found");
         return audio;
     }

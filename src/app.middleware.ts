@@ -11,8 +11,11 @@ export class InjectSessionUser implements NestMiddleware{
         
     async use(req: any, res: any, next: () => void) {
         try {
+            // if(!req.headers?.authorization) {
+            //     return next();
+            // }
             const { userId } = this.tokenService.getTokenData(req.headers)
-            if(!req.session.user && req.headers?.authorization) {
+            if(!req.session.user) {
                 req.session.user = await this.userService.getUser(userId)
             }
             if(req.session.user?.id != userId) {

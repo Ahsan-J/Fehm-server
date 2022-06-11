@@ -51,7 +51,7 @@ export class BookService {
 
     async getBookById(id: Book['id']): Promise<Book> {
         if (!id) throw new BadRequestException('"Book id" is missing');
-        const book = await this.bookRepository.findOne(id, { relations: ['genre'] });
+        const book = await this.bookRepository.findOne({ where: {id}, relations: ['genre'] });
 
         if (!book) throw new BadRequestException("No Book find for specific id");
         return book;

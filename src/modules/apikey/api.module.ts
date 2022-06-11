@@ -19,7 +19,7 @@ import { ApiMiddleware } from './api.middleware';
 })
 export class ApiModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(ApiMiddleware).forRoutes("*")
+    consumer.apply(ApiMiddleware).exclude("audio/stream/(.*)").forRoutes("*")
   }
   
 }

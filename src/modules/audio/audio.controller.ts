@@ -18,15 +18,14 @@ import { getStorage } from 'src/helper/utility';
 @ApiBearerAuth('AccessToken')
 @ApiSecurity("ApiKeyAuth")
 @Controller('audio')
-@UseAccess(APIAccessLevel.Standard)
-@UseRoles(UserRole.User)
-@UseGuards(AuthGuard)
 export class AudioController {
 
     constructor(private audioService: AudioService) {}
 
     @Post('upload')
     @UseInterceptors(FileInterceptor('book', { storage: getStorage('audio') }))
+    @UseAccess(APIAccessLevel.Standard)
+    @UseGuards(AuthGuard)
     @UseRoles(UserRole.Narrator, UserRole.Admin, UserRole.SuperAdmin)
     uploadBook(@Body() audioUpload: AudioBookUpload, @UploadedFile() file: Express.Multer.File): Promise<Audio> {
         return this.audioService.createBookAudio(audioUpload, file);
@@ -34,12 +33,16 @@ export class AudioController {
 
     @Post('approve')
     @UseRoles(UserRole.Admin)
+    @UseAccess(APIAccessLevel.Standard)
+    @UseGuards(AuthGuard)
     approvedUploadedAudio(@Body() body: AudioApprove): Promise<Audio> {
         return this.audioService.changeAudioStatus(body.audio_id, AudioStatus.Active);
     }
 
     @Post('block')
     @UseRoles(UserRole.Admin)
+    @UseAccess(APIAccessLevel.Standard)
+    @UseGuards(AuthGuard)
     blockUploadedAudio(@Body() body: AudioBlock): Promise<Audio> {
         return this.audioService.changeAudioStatus(body.audio_id, AudioStatus.Blocked, body.remark);
     }

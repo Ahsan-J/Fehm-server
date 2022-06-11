@@ -24,7 +24,7 @@ export class AuthorService {
             throw new BadRequestException("No id provided to fetch the author");
         }
 
-        const author = await this.authorRepository.findOne(id, {relations:['genre', 'books']});
+        const author = await this.authorRepository.findOne({where: {id}, relations:['genre', 'books']});
 
         if(!author) {
             throw new BadRequestException("Author not found")
