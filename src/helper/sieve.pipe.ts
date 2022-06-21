@@ -30,21 +30,35 @@ export class Sieve implements PipeTransform {
     reg = new RegExp(`([\\w\\d]+)(${Object.keys(this.filterOp).join("|")})([\\w\\d]*)`);
 
     transformFilters(filters) {
+        
+        const processFilterValue = (op, value) => {
+            if(value && value.toLowerCase() != "null") { // perform sieve operation
+                const f = this.filterOp[op];
+                return f?.(value)
+            } else { // Generate where clause for null
+                const f = this.nullFilterOp[op] || this.nullFilterOp['==']
+                return f();
+            }
+        }
+
         return filters.split(',')
         .filter(v => this.reg.test(v))
         .reduce((result, expression) => {
             const [, key, op, value] = this.reg.exec(expression)
-            
-            if(value && value.toLowerCase() != "null") { // perform sieve operation
-                const f = this.filterOp[op];
-                result[key] = f?.(value)
-            } else { // Generate where clause for null
-                const f = this.nullFilterOp[op] || this.nullFilterOp['==']
-                result[key] = f();
+            const keys = key.split('|');
+            const values = value.split('|');
+            if(keys.length <= 1 && values.length <= 1) {
+                result[0][key] = processFilterValue(op, value);
+            } else {
+                keys.forEach((k) => {
+                    values.forEach((v) => {
+                        result.push({[k]: v})
+                    })
+                })
             }
-
+            
             return result;
-        }, {})
+        }, [{}]).filter(obj => Object.values(obj).length)
     }
 
     transformSorts(sorts: string) {

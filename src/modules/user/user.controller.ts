@@ -34,7 +34,7 @@ export class UserController {
   @UseRoles(UserRole.SuperAdmin, UserRole.Admin)
   async getUsers(@Query() query: PaginationQuery, @Query('filters', Sieve) filters, @Query('sorts', Sieve) sorts): Promise<Array<User> | { meta: PaginationMeta }> {
 
-    const page = parseInt(query.page);
+    const page = parseInt(query.page || '1');
     const pageSize = parseInt(query.pageSize || '10');
     const [data, meta] = await this.userService.getUsers({
       skip: (page - 1) * pageSize,
